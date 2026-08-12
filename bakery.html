@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Since 1989, Café Upper Crust Bakery has been crafting fresh breads, cookies, pastries, and cakes using time-honoured recipes.">
+    <title>Our Bakery - Café Upper Crust</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Montserrat:wght@400;500;600;700;800&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Chatbot CSS -->
+    <link rel="stylesheet" href="css/chatbot.css">
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader" class="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Header / Nav -->
+    <header class="header">
+        <div class="container header-container">
+            <a href="index.html" class="logo">
+                <h1>Café Upper Crust</h1>
+            </a>
+            <button class="mobile-nav-toggle" aria-controls="primary-navigation" aria-expanded="false">
+                <span class="sr-only">Menu</span>
+                <span class="hamburger"></span>
+            </button>
+            <nav id="primary-navigation" class="primary-navigation">
+                <ul class="nav-list">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="menu.html">Menu</a></li>
+                    <li><a href="bakery.html" class="active">Bakery</a></li>
+                    <li><a href="outlets.html">Outlets</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Hero -->
+    <section class="page-hero" style="background-color: #000; position: relative;">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content text-center">
+            <h1 class="hero-title">Our Bakery</h1>
+            <p class="hero-subtitle">Freshly Baked, Made with Love</p>
+            <div class="breadcrumbs">
+                <a href="index.html">Home</a> &gt; <span>Bakery</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bakery Intro -->
+    <section class="bakery-intro section-padding text-center">
+        <div class="container">
+            <h2 class="section-title">The Upper Crust Bakery</h2>
+            <div class="section-divider"></div>
+            <p class="section-description max-w-800 mx-auto">
+                Since 1989, our bakery has been crafting fresh breads, cookies, pastries, and cakes using time-honoured recipes and the finest ingredients. Every item is baked fresh daily at each of our outlets, ensuring the authentic Upper Crust taste in every bite.
+            </p>
+        </div>
+    </section>
+
+    <!-- Bakery Products Section -->
+    <section class="bakery-products section-padding bg-light">
+        <div class="container">
+            <!-- Filter Tabs -->
+            <div class="filter-tabs text-center mb-5">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="cookies">Cookies</button>
+                <button class="filter-btn" data-filter="breads">Breads</button>
+                <button class="filter-btn" data-filter="khari-toast">Khari & Toast</button>
+                <button class="filter-btn" data-filter="snacks">Snacks</button>
+                <button class="filter-btn" data-filter="cakes">Cakes</button>
+                <button class="filter-btn" data-filter="pastries">Pastries</button>
+                <button class="filter-btn" data-filter="desserts">Desserts</button>
+            </div>
+
+            <!-- Product Cards Grid -->
+            <div class="product-grid grid-cols-1 md-grid-cols-2 lg-grid-cols-3 xl-grid-cols-4 gap-4" id="bakery-grid">
+
+                <div class="product-card bakery-item is-visible animated" data-category="cookies" data-type="veg" data-item-id="bakery-butter-cookies">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Butter Cookies" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Butter Cookies</h3>
+                        <p class="product-desc">Classic rich buttery shortbread cookies</p>
+                        <p class="product-price">₹180/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cookies" data-type="veg" data-item-id="bakery-chocochip-cookies">
+                    <div class="product-img">
+                        <img src="assets/images/chocolate-truffle.jpg" alt="Chocolate Chip Cookies" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Chocolate Chip Cookies</h3>
+                        <p class="product-desc">Loaded with premium dark chocolate chips</p>
+                        <p class="product-price">₹200/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cookies" data-type="veg" data-item-id="bakery-nankhatai">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Nan Khatai" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Nan Khatai</h3>
+                        <p class="product-desc">Traditional Indian cardamom shortbread cookies</p>
+                        <p class="product-price">₹160/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cookies" data-type="veg" data-item-id="bakery-almond-cookies">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="Almond Cookies" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Almond Cookies</h3>
+                        <p class="product-desc">Crunchy almond-studded golden cookies</p>
+                        <p class="product-price">₹220/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="breads" data-type="veg" data-item-id="bakery-white-bread">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="White Sandwich Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>White Sandwich Bread</h3>
+                        <p class="product-desc">Soft and fresh daily sandwich loaf</p>
+                        <p class="product-price">₹45</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="breads" data-type="veg" data-item-id="bakery-brown-bread">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Whole Wheat Brown Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Whole Wheat Brown Bread</h3>
+                        <p class="product-desc">Healthy high-fiber brown bread loaf</p>
+                        <p class="product-price">₹55</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="breads" data-type="veg" data-item-id="bakery-multigrain-bread">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Multigrain Seed Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Multigrain Seed Bread</h3>
+                        <p class="product-desc">Artisan loaf studded with flax & sunflower seeds</p>
+                        <p class="product-price">₹65</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="breads" data-type="veg" data-item-id="bakery-garlic-bread">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="French Garlic Loaf" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>French Garlic Loaf</h3>
+                        <p class="product-desc">Fresh herb and garlic infused crusty baguette</p>
+                        <p class="product-price">₹75</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="khari-toast" data-type="veg" data-item-id="bakery-plain-khari">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Plain Flaky Khari" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Plain Flaky Khari</h3>
+                        <p class="product-desc">Crispy layered puff pastry khari</p>
+                        <p class="product-price">₹120/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="khari-toast" data-type="veg" data-item-id="bakery-masala-khari">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Spiced Masala Khari" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Spiced Masala Khari</h3>
+                        <p class="product-desc">Seasoned puff pastry with cumin and pepper</p>
+                        <p class="product-price">₹130/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="khari-toast" data-type="veg" data-item-id="bakery-milk-toast">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="Crispy Milk Rusk Toast" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Crispy Milk Rusk Toast</h3>
+                        <p class="product-desc">Double-baked sweet milk toast rusks</p>
+                        <p class="product-price">₹110/box</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="snacks" data-type="veg" data-item-id="bakery-veg-puff">
+                    <div class="product-img">
+                        <img src="assets/images/veg-spring-rolls.jpg" alt="Veg Potato Puff" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Veg Potato Puff</h3>
+                        <p class="product-desc">Golden flaky puff pastry filled with spiced potato</p>
+                        <p class="product-price">₹35</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="snacks" data-type="veg" data-item-id="bakery-paneer-puff">
+                    <div class="product-img">
+                        <img src="assets/images/paneer-tikka.jpg" alt="Paneer Cottage Cheese Puff" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Paneer Cottage Cheese Puff</h3>
+                        <p class="product-desc">Flaky puff stuffed with spiced paneer tikka</p>
+                        <p class="product-price">₹45</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="snacks" data-type="veg" data-item-id="bakery-cheese-roll">
+                    <div class="product-img">
+                        <img src="assets/images/mac-and-cheese.jpg" alt="Baked Cheese Roll" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Baked Cheese Roll</h3>
+                        <p class="product-desc">Soft bread roll filled with melted cheese and herbs</p>
+                        <p class="product-price">₹50</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cakes" data-type="veg" data-item-id="bakery-chocolate-cake">
+                    <div class="product-img">
+                        <img src="assets/images/chocolate-truffle.jpg" alt="Dutch Chocolate Truffle Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Dutch Chocolate Truffle Cake</h3>
+                        <p class="product-desc">Rich dark chocolate ganache cake</p>
+                        <p class="product-price">₹550/kg</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cakes" data-type="veg" data-item-id="bakery-red-velvet-cake">
+                    <div class="product-img">
+                        <img src="assets/images/red-velvet.jpg" alt="Red Velvet Cream Cheese Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Red Velvet Cream Cheese Cake</h3>
+                        <p class="product-desc">Classic red velvet with silky cream cheese frosting</p>
+                        <p class="product-price">₹650/kg</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cakes" data-type="veg" data-item-id="bakery-black-forest-cake">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="Black Forest Cherry Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Black Forest Cherry Cake</h3>
+                        <p class="product-desc">Layered sponge cake with whipped cream & cherries</p>
+                        <p class="product-price">₹500/kg</p>
+                    </div>
+                </div>
+
+                <div class="product-card bakery-item is-visible animated" data-category="cakes" data-type="veg" data-item-id="bakery-pineapple-cake">
+                    <div class="product-img">
+                        <img src="assets/images/brownie-ice-cream.jpg" alt="Fresh Pineapple Gateau" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <div class="food-type-header">
+                            <span class="veg-indicator" aria-label="Vegetarian">🟢 Veg</span>
+                        </div>
+                        <h3>Fresh Pineapple Gateau</h3>
+                        <p class="product-desc">Light sponge cake layered with fresh pineapple chunks</p>
+                        <p class="product-price">₹480/kg</p>
+                    </div>
+                </div>
+            </div>
+                    <div class="product-info">
+                        <h3>Butter Cookies</h3>
+                        <p class="product-desc">Classic buttery cookies</p>
+                        <p class="product-price">₹180/box</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cookies">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Chocolate Chip Cookies" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Chocolate Chip Cookies</h3>
+                        <p class="product-desc">Loaded with chocolate chips</p>
+                        <p class="product-price">₹200/box</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cookies">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Nan Khatai" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Nan Khatai</h3>
+                        <p class="product-desc">Traditional Indian shortbread cookies</p>
+                        <p class="product-price">₹160/box</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cookies">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Almond Cookies" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Almond Cookies</h3>
+                        <p class="product-desc">Crunchy almond-studded cookies</p>
+                        <p class="product-price">₹220/box</p>
+                    </div>
+                </div>
+
+                <!-- Breads -->
+                <div class="product-card bakery-item" data-category="breads">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="White Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>White Bread</h3>
+                        <p class="product-desc">Soft and fresh sandwich bread</p>
+                        <p class="product-price">₹45</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="breads">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="Brown Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Brown Bread</h3>
+                        <p class="product-desc">Whole wheat healthy bread</p>
+                        <p class="product-price">₹55</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="breads">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="Multigrain Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Multigrain Bread</h3>
+                        <p class="product-desc">Nutritious multi-seed bread</p>
+                        <p class="product-price">₹65</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="breads">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="Garlic Bread" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Garlic Bread</h3>
+                        <p class="product-desc">Buttery garlic herb bread</p>
+                        <p class="product-price">₹85</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="breads">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-breads.jpg" alt="Baguette" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Baguette</h3>
+                        <p class="product-desc">French-style crusty bread</p>
+                        <p class="product-price">₹75</p>
+                    </div>
+                </div>
+
+                <!-- Khari & Toast -->
+                <div class="product-card bakery-item" data-category="khari-toast">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Plain Khari" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Plain Khari</h3>
+                        <p class="product-desc">Classic flaky puff pastry</p>
+                        <p class="product-price">₹80/pack</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="khari-toast">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Jeera Khari" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Jeera Khari</h3>
+                        <p class="product-desc">Cumin-flavoured khari</p>
+                        <p class="product-price">₹90/pack</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="khari-toast">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Butter Toast" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Butter Toast</h3>
+                        <p class="product-desc">Crispy buttered toast</p>
+                        <p class="product-price">₹70/pack</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="khari-toast">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-khari.jpg" alt="Suji Toast" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Suji Toast</h3>
+                        <p class="product-desc">Semolina-crusted toast</p>
+                        <p class="product-price">₹75/pack</p>
+                    </div>
+                </div>
+
+                <!-- Snacks -->
+                <div class="product-card bakery-item" data-category="snacks">
+                    <div class="product-img">
+                        <img src="assets/images/veg-spring-rolls.jpg" alt="Veg Puff" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Veg Puff</h3>
+                        <p class="product-desc">Flaky pastry with spiced vegetable filling</p>
+                        <p class="product-price">₹35</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="snacks">
+                    <div class="product-img">
+                        <img src="assets/images/fish-chips.jpg" alt="Chicken Puff" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Chicken Puff</h3>
+                        <p class="product-desc">Puff pastry with chicken filling</p>
+                        <p class="product-price">₹45</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="snacks">
+                    <div class="product-img">
+                        <img src="assets/images/veg-spring-rolls.jpg" alt="Veg Sandwich" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Veg Sandwich</h3>
+                        <p class="product-desc">Fresh grilled vegetable sandwich</p>
+                        <p class="product-price">₹85</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="snacks">
+                    <div class="product-img">
+                        <img src="assets/images/paneer-tikka.jpg" alt="Paneer Roll" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Paneer Roll</h3>
+                        <p class="product-desc">Spiced cottage cheese in a wrap</p>
+                        <p class="product-price">₹95</p>
+                    </div>
+                </div>
+
+                <!-- Cakes -->
+                <div class="product-card bakery-item" data-category="cakes">
+                    <div class="product-img">
+                        <img src="assets/images/chocolate-truffle.jpg" alt="Chocolate Truffle Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Chocolate Truffle Cake</h3>
+                        <p class="product-desc">Rich chocolate ganache cake</p>
+                        <p class="product-price">₹650/kg</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cakes">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="Black Forest Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Black Forest Cake</h3>
+                        <p class="product-desc">Classic cherry and cream cake</p>
+                        <p class="product-price">₹600/kg</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cakes">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="Pineapple Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Pineapple Cake</h3>
+                        <p class="product-desc">Light and fruity pineapple cake</p>
+                        <p class="product-price">₹550/kg</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cakes">
+                    <div class="product-img">
+                        <img src="assets/images/red-velvet.jpg" alt="Red Velvet Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Red Velvet Cake</h3>
+                        <p class="product-desc">Stunning red velvet with cream cheese</p>
+                        <p class="product-price">₹750/kg</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="cakes">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="Butterscotch Cake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Butterscotch Cake</h3>
+                        <p class="product-desc">Caramel and butterscotch delight</p>
+                        <p class="product-price">₹600/kg</p>
+                    </div>
+                </div>
+
+                <!-- Pastries -->
+                <div class="product-card bakery-item" data-category="pastries">
+                    <div class="product-img">
+                        <img src="assets/images/chocolate-truffle.jpg" alt="Chocolate Pastry" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Chocolate Pastry</h3>
+                        <p class="product-desc">Rich chocolate cream pastry</p>
+                        <p class="product-price">₹75</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="pastries">
+                    <div class="product-img">
+                        <img src="assets/images/red-velvet.jpg" alt="Strawberry Pastry" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Strawberry Pastry</h3>
+                        <p class="product-desc">Fresh strawberry cream pastry</p>
+                        <p class="product-price">₹80</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="pastries">
+                    <div class="product-img">
+                        <img src="assets/images/red-velvet.jpg" alt="Blueberry Cheesecake" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Blueberry Cheesecake</h3>
+                        <p class="product-desc">New York-style cheesecake</p>
+                        <p class="product-price">₹120</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="pastries">
+                    <div class="product-img">
+                        <img src="assets/images/chocolate-truffle.jpg" alt="Éclair" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Éclair</h3>
+                        <p class="product-desc">Cream-filled chocolate-topped éclair</p>
+                        <p class="product-price">₹85</p>
+                    </div>
+                </div>
+
+                <!-- Desserts -->
+                <div class="product-card bakery-item" data-category="desserts">
+                    <div class="product-img">
+                        <img src="assets/images/brownie-ice-cream.jpg" alt="Brownie" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Brownie</h3>
+                        <p class="product-desc">Fudgy chocolate brownie</p>
+                        <p class="product-price">₹95</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="desserts">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="Muffin" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Muffin</h3>
+                        <p class="product-desc">Soft and moist baked muffin</p>
+                        <p class="product-price">₹75</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="desserts">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cakes.jpg" alt="Danish Pastry" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Danish Pastry</h3>
+                        <p class="product-desc">Butter pastry with fruit filling</p>
+                        <p class="product-price">₹90</p>
+                    </div>
+                </div>
+                <div class="product-card bakery-item" data-category="desserts">
+                    <div class="product-img">
+                        <img src="assets/images/bakery-cookies.jpg" alt="Baklava" loading="lazy">
+                    </div>
+                    <div class="product-info">
+                        <h3>Baklava</h3>
+                        <p class="product-desc">Layered filo with nuts and honey</p>
+                        <p class="product-price">₹120</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section section-padding text-center">
+        <div class="container">
+            <h2>Visit our outlets to taste freshly baked goods daily</h2>
+            <a href="outlets.html" class="btn btn-primary mt-3">Find an Outlet</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3>Café Upper Crust</h3>
+                    <p>Ahmedabad's favourite destination for fine dining and fresh bakery products since 1989.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="menu.html">Menu</a></li>
+                        <li><a href="bakery.html">Bakery</a></li>
+                        <li><a href="outlets.html">Outlets</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Contact Us</h3>
+                    <p>Phone: +91 98250 12345</p>
+                    <p>Email: info@cafeuppercrust.com</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook">FB</a>
+                        <a href="#" aria-label="Instagram">IG</a>
+                        <a href="#" aria-label="Twitter">TW</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom text-center mt-4 pt-3 border-top">
+                <p>&copy; 2026 Café Upper Crust. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- WhatsApp Float -->
+    <a href="https://wa.me/919825012345" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+        </svg>
+    </a>
+
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" aria-label="Back to top">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5"/>
+        </svg>
+    </a>
+
+    <!-- Scripts -->
+    <script src="js/menu-data.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const productItems = document.querySelectorAll('.bakery-item');
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const filterValue = btn.getAttribute('data-filter');
+
+                    productItems.forEach(item => {
+                        if (filterValue === 'all' || item.getAttribute('data-category') === filterValue) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+    <!-- Chatbot JS -->
+    <script src="js/chatbot.js"></script>
+</body>
+</html>

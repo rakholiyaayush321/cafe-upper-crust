@@ -1,0 +1,928 @@
+'use strict';
+
+(function () {
+    let preloaderHidden = false;
+
+    function hidePreloader() {
+        if (preloaderHidden) return;
+        preloaderHidden = true;
+        
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.classList.add('fade-out');
+            setTimeout(() => {
+                preloader.style.display = 'none';
+                document.body.classList.add('loaded');
+            }, 400);
+        } else {
+            document.body.classList.add('loaded');
+        }
+    }
+
+    // Core Initialization
+    if (document.readyState === 'interactive' || document.readyState === 'complete') {
+        setTimeout(initApp, 0);
+        setTimeout(hidePreloader, 400);
+    } else {
+        document.addEventListener('DOMContentLoaded', initApp);
+    }
+
+    // Hide preloader on window load OR max 500ms safety timer after DOM ready
+    window.addEventListener('load', hidePreloader);
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(hidePreloader, 500);
+    });
+    // Extra safety timeout
+    setTimeout(hidePreloader, 1000);
+
+    function initApp() {
+        try {
+            initStickyHeader();
+            initMobileNav();
+            initActiveNavState();
+            initSmoothScrolling();
+            
+            // Reusable filtering for Menu and Bakery pages
+            initFiltering('.filter-btn, .menu-filter-btn', '.menu-card', 'menu');
+            initFiltering('.filter-btn, .bakery-filter-btn', '.bakery-card', 'bakery');
+            
+            initFormValidation();
+            initScrollAnimations();
+            initBackToTop();
+            initCounters();
+            initLazyLoading();
+            initLightbox();
+            initAccordion();
+            initGoogleMapsLinks();
+            initWhatsAppButton();
+            initAutoResizeTextarea();
+            initCurrentYear();
+            initChatWidget();
+        } catch (error) {
+            console.error('Initialization error:', error);
+        }
+    }
+
+    // 2. STICKY HEADER
+    function initStickyHeader() {
+        const header = document.querySelector('.header');
+        if (!header) return;
+
+        function checkScroll() {
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }
+
+        window.addEventListener('scroll', checkScroll);
+        checkScroll(); // Initial check
+    }
+
+    // 3. MOBILE NAVIGATION
+    function initMobileNav() {
+        const navToggle = document.querySelector('.hamburger') || document.querySelector('.nav-toggle') || document.querySelector('.mobile-toggle');
+        const navMenu = document.querySelector('.nav-menu') || document.querySelector('.navbar') || document.querySelector('.nav-links');
+        if (!navToggle || !navMenu) return;
+
+        function toggleNav(e) {
+            if (e) e.stopPropagation();
+            navToggle.classList.toggle('active');
+            navMenu.classList.toggle('active');
+            document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+        }
+
+        function closeNav() {
+            navToggle.classList.remove('active');
+            navMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        navToggle.addEventListener('click', toggleNav);
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (navMenu.classList.contains('active') && !navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+                closeNav();
+            }
+        });
+
+        // Close on nav link click
+        const navLinks = navMenu.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', closeNav);
+        });
+    }
+
+    // 4. ACTIVE NAVIGATION STATE
+    function initActiveNavState() {
+        const currentPath = window.location.pathname;
+        const pageName = currentPath.split('/').pop() || 'index.html';
+        const navLinks = document.querySelectorAll('.nav-link, .nav-links a');
+
+        navLinks.forEach(link => {
+            const linkPath = link.getAttribute('href');
+            if (linkPath === pageName || (pageName === '' && linkPath === 'index.html')) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    // 5. SMOOTH SCROLLING
+    function initSmoothScrolling() {
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    e.preventDefault();
+                    const headerHeight = document.querySelector('.header')?.offsetHeight || 80;
+                    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                    
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    }
+
+    // 6 & 7. CATEGORY FILTERING (Menu & Bakery)
+    function initFiltering(filterBtnSelector, itemSelector, context) {
+        const filterBtns = document.querySelectorAll(filterBtnSelector);
+        if (!filterBtns.length) return;
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const filterValue = btn.getAttribute('data-filter');
+
+                document.querySelectorAll('.menu-card, .bakery-item, .product-card').forEach(card => {
+                    const category = card.getAttribute('data-category');
+                    const type = card.getAttribute('data-type');
+                    
+                    let match = false;
+                    if (filterValue === 'all') {
+                        match = true;
+                    } else if (filterValue === 'veg') {
+                        match = type === 'veg' || card.querySelector('.veg-indicator') !== null;
+                    } else if (filterValue === 'non-veg') {
+                        match = type === 'non-veg' || card.querySelector('.nonveg-indicator') !== null;
+                    } else if (filterValue === category) {
+                        match = true;
+                    }
+
+                    if (match) {
+                        card.style.display = '';
+                        card.style.opacity = '1';
+                        card.style.transform = 'scale(1)';
+                        card.classList.add('is-visible', 'animated');
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                document.querySelectorAll('.menu-category').forEach(section => {
+                    const sectionId = section.getAttribute('id');
+                    if (filterValue === 'all') {
+                        section.style.display = '';
+                    } else if (filterValue === 'veg' || filterValue === 'non-veg') {
+                        const visibleCards = section.querySelectorAll('.menu-card:not([style*="display: none"])');
+                        section.style.display = visibleCards.length > 0 ? '' : 'none';
+                    } else if (filterValue === sectionId) {
+                        section.style.display = '';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            });
+        });
+    }
+
+    // 8. CONTACT FORM VALIDATION
+    function initFormValidation() {
+        const form = document.querySelector('#contact-form') || document.querySelector('#contactForm');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            let isValid = true;
+            
+            // Name validation
+            const nameInput = document.getElementById('contact-name') || document.getElementById('name');
+            if (nameInput) {
+                if (nameInput.value.trim().length < 2) {
+                    showError(nameInput, 'Name must be at least 2 characters.');
+                    isValid = false;
+                } else {
+                    showSuccess(nameInput);
+                }
+            }
+
+            // Phone validation (Indian 10 digits)
+            const phoneInput = document.getElementById('contact-phone') || document.getElementById('phone');
+            if (phoneInput) {
+                const phoneRegex = /^[6-9]\d{9}$/;
+                if (!phoneRegex.test(phoneInput.value.trim())) {
+                    showError(phoneInput, 'Please enter a valid 10-digit Indian phone number.');
+                    isValid = false;
+                } else {
+                    showSuccess(phoneInput);
+                }
+            }
+
+            // Email validation
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.value.trim())) {
+                    showError(emailInput, 'Please enter a valid email address.');
+                    isValid = false;
+                } else {
+                    showSuccess(emailInput);
+                }
+            }
+
+            // Message validation
+            const messageInput = document.getElementById('message');
+            if (messageInput) {
+                if (messageInput.value.trim().length < 10) {
+                    showError(messageInput, 'Message must be at least 10 characters.');
+                    isValid = false;
+                } else {
+                    showSuccess(messageInput);
+                }
+            }
+
+            if (isValid) {
+                // Simulate form submission
+                const btn = form.querySelector('button[type="submit"]');
+                const originalText = btn.textContent;
+                btn.textContent = 'Sending...';
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    // Show success modal/message
+                    const formContainer = form.parentElement;
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'form-success-message';
+                    successMessage.innerHTML = '<h3>Thank You!</h3><p>Your message has been sent successfully. We will get back to you soon.</p>';
+                    
+                    form.style.display = 'none';
+                    formContainer.appendChild(successMessage);
+                    form.reset();
+                    
+                    // Reset inputs state
+                    form.querySelectorAll('.form-control').forEach(input => {
+                        input.classList.remove('success');
+                        const errorMsg = input.parentElement.querySelector('.error-message');
+                        if (errorMsg) errorMsg.remove();
+                    });
+                }, 1500);
+            }
+        });
+
+        function showError(input, message) {
+            const formControl = input.parentElement;
+            input.classList.add('error');
+            input.classList.remove('success');
+            
+            let errorElement = formControl.querySelector('.error-message');
+            if (!errorElement) {
+                errorElement = document.createElement('small');
+                errorElement.className = 'error-message';
+                formControl.appendChild(errorElement);
+            }
+            errorElement.textContent = message;
+        }
+
+        function showSuccess(input) {
+            const formControl = input.parentElement;
+            input.classList.remove('error');
+            input.classList.add('success');
+            
+            const errorElement = formControl.querySelector('.error-message');
+            if (errorElement) {
+                errorElement.remove();
+            }
+        }
+    }
+
+    // 9. SCROLL ANIMATIONS
+    function initScrollAnimations() {
+        const animatedElements = document.querySelectorAll('.animate-on-scroll');
+        
+        animatedElements.forEach(el => {
+            el.classList.add('animated');
+            el.classList.add('is-visible');
+        });
+    }
+
+    // 10. BACK TO TOP BUTTON
+    function initBackToTop() {
+        const backToTopBtn = document.getElementById('backToTop');
+        if (!backToTopBtn) return;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+
+    // 11. COUNTER ANIMATION
+    function initCounters() {
+        const counters = document.querySelectorAll('.counter');
+        if (!counters.length) return;
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    startCounter(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(counter => observer.observe(counter));
+
+        function startCounter(counterElement) {
+            const target = +counterElement.getAttribute('data-target');
+            const duration = 2000; // ~2 seconds
+            const increment = target / (duration / 16); // 60fps
+            
+            let current = 0;
+            
+            const updateCounter = () => {
+                current += increment;
+                if (current < target) {
+                    counterElement.innerText = Math.ceil(current);
+                    requestAnimationFrame(updateCounter);
+                } else {
+                    counterElement.innerText = target;
+                }
+            };
+            
+            updateCounter();
+        }
+    }
+
+    // 12. IMAGE LAZY LOADING
+    function initLazyLoading() {
+        const lazyImages = document.querySelectorAll('img[data-src]');
+        if (!lazyImages.length) return;
+
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.getAttribute('data-src');
+                        img.removeAttribute('data-src');
+                        
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                        };
+                        
+                        observer.unobserve(img);
+                    }
+                });
+            });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+        } else {
+            // Fallback for older browsers
+            lazyImages.forEach(img => {
+                img.src = img.getAttribute('data-src');
+                img.onload = () => img.classList.add('loaded');
+            });
+        }
+    }
+
+    // 13. GALLERY / LIGHTBOX
+    function initLightbox() {
+        const galleryImages = document.querySelectorAll('.gallery-img');
+        if (!galleryImages.length) return;
+
+        // Create lightbox DOM elements dynamically
+        const lightbox = document.createElement('div');
+        lightbox.className = 'lightbox-modal';
+        lightbox.innerHTML = `
+            <div class="lightbox-overlay"></div>
+            <div class="lightbox-content">
+                <span class="lightbox-close">&times;</span>
+                <img class="lightbox-image" src="" alt="Gallery Image">
+                <div class="lightbox-nav lightbox-prev">&#10094;</div>
+                <div class="lightbox-nav lightbox-next">&#10095;</div>
+            </div>
+        `;
+        document.body.appendChild(lightbox);
+
+        const lightboxImage = lightbox.querySelector('.lightbox-image');
+        const closeBtn = lightbox.querySelector('.lightbox-close');
+        const overlay = lightbox.querySelector('.lightbox-overlay');
+        const prevBtn = lightbox.querySelector('.lightbox-prev');
+        const nextBtn = lightbox.querySelector('.lightbox-next');
+
+        let currentIndex = 0;
+        const imagesArr = Array.from(galleryImages);
+
+        function openLightbox(index) {
+            currentIndex = index;
+            updateImage();
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function updateImage() {
+            const imgSrc = imagesArr[currentIndex].getAttribute('src') || imagesArr[currentIndex].getAttribute('data-src');
+            lightboxImage.src = imgSrc;
+            
+            // Hide arrows if only 1 image
+            if (imagesArr.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+            }
+        }
+
+        function showNext() {
+            currentIndex = (currentIndex + 1) % imagesArr.length;
+            updateImage();
+        }
+
+        function showPrev() {
+            currentIndex = (currentIndex - 1 + imagesArr.length) % imagesArr.length;
+            updateImage();
+        }
+
+        // Event Listeners
+        imagesArr.forEach((img, index) => {
+            img.style.cursor = 'pointer';
+            img.addEventListener('click', () => openLightbox(index));
+        });
+
+        closeBtn.addEventListener('click', closeLightbox);
+        overlay.addEventListener('click', closeLightbox);
+        nextBtn.addEventListener('click', showNext);
+        prevBtn.addEventListener('click', showPrev);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowRight') showNext();
+            if (e.key === 'ArrowLeft') showPrev();
+        });
+    }
+
+    // 14. FAQ ACCORDION
+    function initAccordion() {
+        const accordionItems = document.querySelectorAll('.faq-item');
+        if (!accordionItems.length) return;
+
+        accordionItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', () => {
+                const isOpen = item.classList.contains('active');
+
+                // Close all other items
+                accordionItems.forEach(otherItem => {
+                    otherItem.classList.remove('active');
+                    const ans = otherItem.querySelector('.faq-answer');
+                    if (ans) ans.style.maxHeight = null;
+                });
+
+                // Toggle current item
+                if (!isOpen) {
+                    item.classList.add('active');
+                    const answer = item.querySelector('.faq-answer');
+                    if (answer) {
+                        answer.style.maxHeight = answer.scrollHeight + 'px';
+                    }
+                }
+            });
+        });
+    }
+
+    // 15. GOOGLE MAPS LINKS
+    function initGoogleMapsLinks() {
+        const mapLinks = document.querySelectorAll('.btn-directions');
+        mapLinks.forEach(link => {
+            // Ensure they open in a new tab if they have a href
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener noreferrer');
+        });
+    }
+
+    // 16. WHATSAPP BUTTON
+    function initWhatsAppButton() {
+        const waBtn = document.querySelector('.whatsapp-btn');
+        if (waBtn) {
+            waBtn.addEventListener('click', (e) => {
+                // Number should ideally come from data attribute or backend, using placeholder as requested
+                const phone = waBtn.getAttribute('data-phone') || '919825012345';
+                const url = 'https://wa.me/' + phone;
+                window.open(url, '_blank');
+            });
+        }
+    }
+
+    // 17. FORM AUTO-RESIZE TEXTAREA
+    function initAutoResizeTextarea() {
+        const textareas = document.querySelectorAll('textarea.auto-resize');
+        
+        textareas.forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            // Trigger initially
+            if(textarea.value) {
+                textarea.style.height = (textarea.scrollHeight) + 'px';
+            }
+        });
+    }
+
+    // 18. CURRENT YEAR IN FOOTER
+    function initCurrentYear() {
+        const yearElement = document.getElementById('currentYear');
+        if (yearElement) {
+            yearElement.textContent = new Date().getFullYear();
+        }
+    }
+
+})();
+
+
+    // 14. CAFÉ UPPER CRUST AI CHATBOT WIDGET
+    // 14. CAFÉ UPPER CRUST DUAL-ENGINE AI CHATBOT WIDGET
+    function initChatWidget() {
+        if (document.getElementById('cafe-chat-container')) return;
+
+        // Session ID management
+        let sessionId = localStorage.getItem('cafe_chat_session_id');
+        if (!sessionId) {
+            sessionId = 'session_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+            localStorage.setItem('cafe_chat_session_id', sessionId);
+        }
+
+        // Multi-turn context memory
+        let lastContextCategory = null;
+        let lastDiscussedItem = null;
+
+        const endpoints = [
+            'https://ayush894.app.n8n.cloud/webhook/cafe-chat',
+            'https://ayush894.app.n8n.cloud/webhook-test/cafe-chat',
+            'http://localhost:5678/webhook/cafe-chat'
+        ];
+
+        // Inject DOM Elements
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'chat-widget-toggle';
+        toggleBtn.setAttribute('aria-label', 'Open Café Upper Crust AI Assistant');
+        toggleBtn.innerHTML = '💬';
+
+        const chatContainer = document.createElement('div');
+        chatContainer.id = 'cafe-chat-container';
+        chatContainer.className = 'chat-widget-container';
+        chatContainer.innerHTML = `
+            <div class="chat-widget-header">
+                <div class="chat-widget-title-area">
+                    <div class="chat-widget-avatar">🍽️</div>
+                    <div>
+                        <h4 class="chat-widget-title">Café Upper Crust</h4>
+                        <p class="chat-widget-subtitle">How can we help you?</p>
+                    </div>
+                </div>
+                <button class="chat-widget-close" aria-label="Close Chat">&times;</button>
+            </div>
+            <div class="chat-widget-body" id="chat-widget-body">
+                <div class="chat-message bot">
+                    <p>Welcome to Café Upper Crust! 👋</p>
+                    <p>I can help you with our menu, prices, outlets, bakery, catering and more. What would you like to know?</p>
+                    <div class="chat-suggestions">
+                        <button class="suggestion-chip" data-msg="What pizzas do you have?">🍕 View Pizza Menu</button>
+                        <button class="suggestion-chip" data-msg="What pasta do you have?">🍝 View Pasta Menu</button>
+                        <button class="suggestion-chip" data-msg="What cakes and desserts do you have?">🍰 Cakes & Desserts</button>
+                        <button class="suggestion-chip" data-msg="Where are your outlets?">📍 Find Our Outlets</button>
+                        <button class="suggestion-chip" data-msg="What beverages do you have?">🥤 Beverages</button>
+                        <button class="suggestion-chip" data-msg="What are your opening hours and timings?">⏰ Store Timings</button>
+                        <button class="suggestion-chip" data-msg="What are your contact details?">📞 Contact Us</button>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-widget-footer">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type your question..." aria-label="Type your message">
+                <button class="chat-send-btn" id="chat-send-btn" aria-label="Send Message">➤</button>
+            </div>
+        `;
+
+        document.body.appendChild(toggleBtn);
+        document.body.appendChild(chatContainer);
+
+        const closeBtn = chatContainer.querySelector('.chat-widget-close');
+        const chatBody = document.getElementById('chat-widget-body');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('chat-send-btn');
+
+        toggleBtn.addEventListener('click', () => {
+            chatContainer.classList.toggle('active');
+            if (chatContainer.classList.contains('active')) {
+                chatInput.focus();
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            chatContainer.classList.remove('active');
+        });
+
+        // Handle Suggestions
+        chatContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('suggestion-chip')) {
+                const text = e.target.getAttribute('data-msg');
+                if (text) sendMessage(text);
+            }
+        });
+
+        sendBtn.addEventListener('click', () => {
+            const text = chatInput.value.trim();
+            if (text) sendMessage(text);
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const text = chatInput.value.trim();
+                if (text) sendMessage(text);
+            }
+        });
+
+        async function sendMessage(text) {
+            appendMessage(text, 'user');
+            chatInput.value = '';
+            sendBtn.disabled = true;
+
+            const typingEl = appendTypingIndicator();
+
+            let reply = null;
+
+            // Attempt to fetch from n8n cloud endpoints first with 3.5s timeout
+            for (const ep of endpoints) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+                    const res = await fetch(ep, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'sendMessage', chatInput: text, sessionId: sessionId }),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        reply = data.output || data.response || data.text;
+                        if (reply) break;
+                    }
+                } catch (e) {
+                    // Try next endpoint or fallback to smart local RAG engine
+                }
+            }
+
+            typingEl.remove();
+
+            // If remote n8n is offline or unreachable, run Local Smart RAG Engine
+            if (!reply) {
+                reply = generateLocalRAGResponse(text);
+            }
+
+            appendMessage(reply, 'bot');
+            sendBtn.disabled = false;
+        }
+
+        function generateLocalRAGResponse(query) {
+            const rawQ = (query || '').toLowerCase().trim();
+            // Punctuation stripper (strips ?, !, ., ,, etc.)
+            const q = rawQ.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            const items = window.menuItems || [];
+
+            if (!q) return "Welcome to Café Upper Crust! Please ask about our menu, prices, outlets, bakery, timings, or catering services.";
+
+            // Helper to search items
+            function searchItems(term) {
+                const t = term.toLowerCase();
+                return items.filter(i => 
+                    i.name.toLowerCase().includes(t) || 
+                    i.category.toLowerCase().includes(t) || 
+                    i.description.toLowerCase().includes(t) || 
+                    i.id.toLowerCase().includes(t)
+                );
+            }
+
+            // 1. Menu / Food / Detail Represented
+            if (q === 'menu' || q.includes('menu') || q === 'food' || q.includes('dishes') || q.includes('detail') || q.includes('categories')) {
+                return "📋 **Café Upper Crust Full Menu Categories:**\n\n1. 🍢 **Starters:** Paneer Tikka, Chicken Tikka, Kebab (₹195 – ₹395)\n2. 🍲 **Soups:** Tomato Basil, Hot & Sour, Manchow (₹165 – ₹195)\n3. 🍛 **Indian Main Course:** Dal Makhani, Paneer Butter Masala, Biryani (₹245 – ₹425)\n4. 🥢 **Chinese:** Manchurian, Chicken Chilli, Noodles (₹195 – ₹295)\n5. 🍕 **Italian & Pizza:** Margherita, Pepperoni Pizza (₹295 – ₹395)\n6. 🍜 **Thai Cuisines:** Green Curry, Red Curry, Pad Thai (₹275 – ₹365)\n7. 🍝 **Pasta Specialties:** Penne Arrabbiata, Alfredo, Pesto (₹245 – ₹345)\n8. 🥩 **Sizzlers:** Veg, Chicken, Fish Sizzlers (₹345 – ₹425)\n9. 🍰 **Desserts & Cakes:** Truffle Cake, Tiramisu, Brownie (₹125 – ₹225)\n10. 🥤 **Beverages:** Masala Chai, Cold Coffee, Mojito (₹65 – ₹155)\n\nType any category or dish name for instant pricing and details!";
+            }
+
+            // 2. Costliest / Premium (BEFORE generic pricing check)
+            if (q.includes('costliest') || q.includes('expensive') || q.includes('highest') || q.includes('premium')) {
+                return "⭐ **Signature Premium Specialties:**\n\n• **Fish Sizzler:** ₹425 (🔴 Non-Veg)\n• **Mutton Rogan Josh:** ₹425 (🔴 Non-Veg)\n• **Fish Amritsari:** ₹395 (🔴 Non-Veg)\n• **Chicken Sizzler:** ₹395 (🔴 Non-Veg)\n• **Pepperoni Pizza:** ₹395 (🔴 Non-Veg)";
+            }
+
+            // 3. Pricing / Price / Cost / Rate / Bhav
+            if (q === 'pricing' || q.includes('price') || q.includes('pricing') || q.includes('cost') || q.includes('rate') || q.includes('bhav')) {
+                const directMatch = items.find(i => q.includes(i.name.toLowerCase()) || q.includes(i.id.toLowerCase()));
+                if (directMatch) {
+                    lastDiscussedItem = directMatch;
+                    return `💰 **Price of ${directMatch.name}:** ₹${directMatch.price} (${directMatch.type === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'})\n\n${directMatch.description}`;
+                }
+                return "💰 **Café Upper Crust Price Overview:**\n\n• **Beverages:** starting at ₹65\n• **Desserts & Cakes:** ₹125 – ₹225\n• **Starters:** ₹195 – ₹395\n• **Pasta & Noodles:** ₹195 – ₹345\n• **Pizzas:** ₹295 – ₹395\n• **Indian Main Course:** ₹245 – ₹425\n• **Sizzlers:** ₹345 – ₹425\n\nType any dish name (e.g. *'Paneer Tikka price'* or *'Pizza price'*) to get exact pricing!";
+            }
+
+            // 4. Cafe Upper Crust / Upper Crust Overview
+            if (q.includes('cafe upper crust') || q.includes('upper crust')) {
+                return "🥐 **Welcome to Café Upper Crust!**\n\nStarted on April 2nd, 1989 by Lester & Monisha D’souza, Café Upper Crust is Ahmedabad's iconic café and bakery destination serving Multi-Cuisine Dining, Artisan Bakery Products, Patisserie, and Event Catering.";
+            }
+
+            // 5. Non-Vegetarian (BEFORE vegetarian check)
+            if (q.includes('nonvegetarian') || q.includes('nonveg') || q.includes('non veg') || q.includes('chicken') || q.includes('mutton') || q.includes('fish') || q.includes('meat')) {
+                return "🔴 **Popular Non-Vegetarian Specialties:**\n\n• **Butter Chicken** — ₹345\n• **Mutton Rogan Josh** — ₹425\n• **Chicken Tikka** — ₹345\n• **Chicken Sizzler** — ₹395\n• **Pepperoni Pizza** — ₹395\n• **Fish Amritsari** — ₹395\n• **Chicken Alfredo Pasta** — ₹345";
+            }
+
+            // 6. Vegetarian
+            if (q.includes('vegetarian') || q.includes('pure veg') || q.includes('veg')) {
+                return "🟢 **Popular Vegetarian Dishes:**\n\n• **Paneer Butter Masala** — ₹295\n• **Dal Makhani** — ₹245\n• **Penne Arrabbiata** — ₹275\n• **Pesto Pasta** — ₹275\n• **Veg Sizzler** — ₹345\n• **Veg Biryani** — ₹265\n• **Chocolate Truffle Cake** — ₹165";
+            }
+
+            // 7. Pizzas / Pizza
+            if (q.includes('pizza')) {
+                lastContextCategory = 'pizza';
+                return "🍕 **Café Upper Crust Pizza Menu:**\n\n• **Margherita Pizza** — ₹295 (🟢 Veg)\n• **Pepperoni Pizza** — ₹395 (🔴 Non-Veg)\n\nFreshly baked thin crust with rich tomato sauce and melted mozzarella cheese.";
+            }
+
+            // 8. Pastas / Pasta
+            if (q.includes('pasta') || q.includes('spaghetti') || q.includes('mac')) {
+                lastContextCategory = 'pasta';
+                return "🍝 **Café Upper Crust Pasta Menu:**\n\n• **Penne Arrabbiata** — ₹275 (🟢 Veg)\n• **Pesto Pasta** — ₹275 (🟢 Veg)\n• **Mac & Cheese** — ₹245 (🟢 Veg)\n• **Chicken Alfredo Pasta** — ₹345 (🔴 Non-Veg)\n• **Spaghetti Bolognese** — ₹325 (🔴 Non-Veg)";
+            }
+
+            // 9. Sizzlers / Sizzler
+            if (q.includes('sizzler')) {
+                lastContextCategory = 'sizzler';
+                return "🥩 **Café Upper Crust Sizzler Platters:**\n\n• **Veg Sizzler** — ₹345 (🟢 Veg)\n• **Chicken Sizzler** — ₹395 (🔴 Non-Veg)\n• **Fish Sizzler** — ₹425 (🔴 Non-Veg)";
+            }
+
+            // 10. Burgers / Burger
+            if (q.includes('burger') || q.includes('sandwich')) {
+                return "🍔 **Café Upper Crust Burgers & Rolls:**\n\n• **Baked Cheese Roll** — ₹50\n• **Veg Potato Puff** — ₹35\n• **Paneer Cottage Cheese Puff** — ₹45\n• **Grilled Cheese Sandwich** — ₹165";
+            }
+
+            // 11. Desserts / Dessert
+            if (q.includes('dessert')) {
+                lastContextCategory = 'dessert';
+                return "🍰 **Café Upper Crust Desserts:**\n\n• **Chocolate Truffle Cake** — ₹165\n• **Red Velvet Cake** — ₹175\n• **Brownie with Ice Cream** — ₹195\n• **Tiramisu** — ₹225\n• **Gulab Jamun** — ₹125";
+            }
+
+            // 12. Cakes / Cake
+            if (q.includes('cake')) {
+                return "🎂 **Café Upper Crust Cakes:**\n\n• **Dutch Chocolate Truffle Cake** — ₹550/kg\n• **Red Velvet Cream Cheese Cake** — ₹650/kg\n• **Black Forest Cherry Cake** — ₹500/kg\n• **Fresh Pineapple Gateau** — ₹480/kg";
+            }
+
+            // 13. Bakery / Breads / Cookies
+            if (q.includes('bakery') || q.includes('bread') || q.includes('cookie') || q.includes('khari') || q.includes('toast')) {
+                return "🥖 **Café Upper Crust Bakery Selection:**\n\n• **Fresh Breads:** Sandwich Bread (₹45), Brown Bread (₹55), Multigrain (₹65), Garlic Loaf (₹75)\n• **Cookies:** Butter Cookies (₹180/box), Choco Chip (₹200/box), Nan Khatai (₹160/box), Almond Cookies (₹220/box)\n• **Khari & Toast:** Layered Khari (₹120/box), Masala Khari (₹130/box), Milk Toast Rusks (₹110/box)";
+            }
+
+            // 14. Beverages / Drinks
+            if (q.includes('beverage') || q.includes('drink') || q.includes('coffee') || q.includes('chai') || q.includes('soda') || q.includes('lassi') || q.includes('mojito')) {
+                return "🥤 **Café Upper Crust Beverages:**\n\n• **Masala Chai** — ₹65\n• **Cold Coffee** — ₹145\n• **Fresh Lime Soda** — ₹95\n• **Mango Lassi** — ₹125\n• **Virgin Mojito** — ₹155";
+            }
+
+            // 15. Outlets / Locations / Address
+            if (q.includes('outlet') || q.includes('location') || q.includes('branch') || q.includes('where') || q.includes('address')) {
+                return "📍 **Café Upper Crust Outlets in Ahmedabad:**\n\n1. **Vastrapur:** Near Vastrapur Lake\n2. **Vijay Cross Road:** Near Commerce College, Navrangpura\n3. **Prahladnagar:** Parshwanath Business Park\n4. **Satellite:** Near Shivranjani Cross Roads\n5. **Bodakdev:** Near JUDGES Bungalow Road\n\nAll outlets are open daily from 11:00 AM to 11:00 PM.";
+            }
+
+            // 16. Timings / Hours / Time
+            if (q.includes('timing') || q.includes('hour') || q.includes('time') || q.includes('open') || q.includes('close') || q.includes('schedule')) {
+                return "⏰ **Café Upper Crust Operating Hours & Timings:**\n\n• **Restaurant & Dine-in:** 11:00 AM – 11:00 PM (Daily)\n• **Bakery & Pastry Counter:** 8:30 AM – 11:00 PM (Daily)\n• **Takeaway & Online Orders:** 11:00 AM – 10:30 PM (Daily)\n• **Catering Enquiries:** 10:00 AM – 7:00 PM";
+            }
+
+            // 17. Catering / Shagun / Lithosphere
+            if (q.includes('catering') || q.includes('event') || q.includes('wedding') || q.includes('party') || q.includes('shagun') || q.includes('lithosphere')) {
+                return "👥 **Shagun Catering by Café Upper Crust:**\n\n• **Capacity:** Outdoor catering up to 5,000 people.\n• **Staff:** Over 150 dedicated catering professionals.\n• **Services:** Corporate meetings, conferences, weddings, and private parties.\n• **Sister Brand:** Lithosphere (Pâtisserie, Boulangerie, Fine-Dine & Rooftop).";
+            }
+
+            // 18. Hampers
+            if (q.includes('hamper')) {
+                return "🎁 **Café Upper Crust Gift & Festival Hampers:**\n\nExquisite festive hampers featuring artisanal cookies, double-baked rusks, dry fruit bites, chocolates, and handcrafted bakery delicacies. Perfect for corporate gifting and special celebrations!";
+            }
+
+            // 19. Patisserie
+            if (q.includes('patisserie')) {
+                return "🥐 **Patisserie Specialties:**\n\nFresh French pastries, chocolate eclairs, fruit tarts, macarons, and signature cream cheese pastries available daily at our bakery counters!";
+            }
+
+            // 20. Cheapest / Budget
+            if (q.includes('cheap') || q.includes('lowest') || q.includes('budget') || q.includes('min')) {
+                return "💡 **Most Affordable Favorites:**\n\n• **Veg Potato Puff:** ₹35\n• **Baked Cheese Roll:** ₹50\n• **Masala Chai:** ₹65\n• **Fresh Lime Soda:** ₹95\n• **Crispy Milk Toast Rusk:** ₹110/box\n• **Gulab Jamun:** ₹125";
+            }
+
+            // 21. Spicy / Hot
+            if (q.includes('spicy') || q.includes('hot')) {
+                return "🌶️ **Spicy Culinary Specialties:**\n\n• **Chicken Chilli** — Wok-tossed green chillies & chicken\n• **Schezwan Noodles** — Spicy Schezwan vegetable noodles\n• **Penne Arrabbiata** — Spicy garlic tomato arrabbiata pasta\n• **Mutton Rogan Josh** — Kashmiri red spice curry\n• **Hot & Sour Soup** — Tangy spicy Chinese broth";
+            }
+
+            // 22. Healthy / Light
+            if (q.includes('healthy') || q.includes('diet') || q.includes('light')) {
+                return "🥗 **Healthy Choices:**\n\n• **Tomato Basil Soup** — Light velvety tomato soup\n• **Thai Green Curry** — Coconut curry with fresh Thai veggies\n• **Multigrain Seed Bread** — High-fiber seed loaf\n• **Fresh Lime Soda** — Sparkling lime & mint refresher";
+            }
+
+            // 23. Popular / Best / Recommend
+            if (q.includes('popular') || q.includes('best') || q.includes('recommend') || q.includes('famous')) {
+                return "🌟 **Café Upper Crust Signature Best-Sellers:**\n\n1. **Paneer Tikka** (₹295)\n2. **Chicken Sizzler** (₹395)\n3. **Chicken Alfredo Pasta** (₹345)\n4. **Chocolate Truffle Cake** (₹165)\n5. **Masala Chai** (₹65)";
+            }
+
+            // 24. Availability / Stock
+            if (q.includes('availab') || q.includes('stock')) {
+                return "✅ **Item Availability:**\n\nAll 47 menu dishes, bakery items, cakes, and beverages are freshly prepared daily and available for Dine-in, Takeaway, and Delivery from 11:00 AM to 11:00 PM!";
+            }
+
+            // 25. Contact / Phone / Email
+            if (q.includes('contact') || q.includes('phone') || q.includes('number') || q.includes('email') || q.includes('call')) {
+                return "📍 **Contact Information:**\n\n• **Phone:** +91 82381 37060 | +91 90999 77444 | +91 98240 22811\n• **Email:** contact@cafeuppercrust.com\n• **Office Address:** 1009, Parshwanath Business Park, Prahladnagar, Ahmedabad.";
+            }
+
+            // 26. Delivery / Takeaway / Order
+            if (q.includes('delivery') || q.includes('takeaway') || q.includes('order') || q.includes('online')) {
+                return "🛵 **Takeaway & Online Delivery:**\n\nAvailable daily from 11:00 AM to 10:30 PM! Order online via food delivery apps or call our outlets directly for takeaway pickup.";
+            }
+
+            // 27. Offers / Discounts / Deals
+            if (q.includes('offer') || q.includes('discount') || q.includes('deal') || q.includes('combo')) {
+                return "🏷️ **Offers & Bakery Deals:**\n\nAsk in-store for our daily freshly baked cookie box combos, celebration cake specials, and festival hamper packages!";
+            }
+
+            // 28. Search by specific dish keyword
+            const matchedItem = items.find(i => q.includes(i.name.toLowerCase()) || q.includes(i.id.toLowerCase()));
+            if (matchedItem) {
+                lastDiscussedItem = matchedItem;
+                return `🍽️ **${matchedItem.name}** (${matchedItem.type === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'})\n\n• **Price:** ₹${matchedItem.price}\n• **Category:** ${matchedItem.category.toUpperCase()}\n• **Description:** ${matchedItem.description}`;
+            }
+
+            // Fallback overview
+            return "Welcome to Café Upper Crust! 👋\n\nI can help you with:\n• **Dishes & Prices:** Type any food item (e.g., *'Paneer Tikka'*, *'Pizza'*, *'Pasta'*)\n• **Menu Categories:** Type *'Menu'* or *'Price list'*\n• **Dietary Options:** Type *'Veg'* or *'Non-Veg'*\n• **Outlets & Timings:** Type *'Outlets'* or *'Timings'*\n• **Contact & Catering:** Type *'Contact'* or *'Catering'*\n\nWhat would you like to know?";
+        }
+
+
+        function appendMessage(msg, sender) {
+            const div = document.createElement('div');
+            div.className = 'chat-message ' + sender;
+            div.innerHTML = formatMarkdown(msg);
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function appendTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'chat-message bot';
+            div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+            return div;
+        }
+
+        function formatMarkdown(str) {
+            let s = (str || '').toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            s = s.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+            s = s.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            s = s.replace(/•\s*(.*?)(<br>|$)/g, '<li>$1</li>');
+            if (s.includes('<li>')) s = s.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+            return s;
+        }
+    }

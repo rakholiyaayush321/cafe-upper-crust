@@ -1,0 +1,201 @@
+{
+  "name": "Café Upper Crust - AI Chatbot & RAG Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "allowAllowedOrigins": "https://cafeuppercrust.com,http://localhost:8080,http://localhost:5678",
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "chat-trigger-001",
+      "name": "n8n Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are the official Café Upper Crust AI assistant.\n\nYour job is to answer questions about Café Upper Crust using the retrieved knowledge base.\n\nIMPORTANT RULES:\n1. Use the RAG knowledge base as the primary source.\n2. Never invent restaurant information.\n3. Never invent menu items.\n4. Never invent prices.\n5. Never invent outlet locations.\n6. Never invent opening hours.\n7. Never invent phone numbers.\n8. Never invent catering information.\n9. Never invent bakery products.\n10. Never invent offers or discounts.\n11. Never guess when information is not available.\n\nIf the retrieved knowledge does not contain the answer, say:\n\"I couldn't find that information in the Café Upper Crust information available to me. Please contact Café Upper Crust directly for the latest details.\""
+        }
+      },
+      "id": "ai-agent-002",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        360,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-1.5-pro",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "gemini-chat-model-003",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        240,
+        520
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NYM15u4iAXCb8LaJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId || 'default-session' }}",
+        "contextWindowLength": 10
+      },
+      "id": "window-memory-004",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "cafe_knowledge_base",
+          "cachedResultName": "cafe_knowledge_base"
+        },
+        "topK": 4
+      },
+      "id": "vector-store-retriever-005",
+      "name": "Retrieve cafe_knowledge_base",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        520
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "gemini-embeddings-006",
+      "name": "Gemini Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        560,
+        720
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NYM15u4iAXCb8LaJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "cafe_knowledge_base_retriever",
+        "description": "Retrieves official information about Café Upper Crust menu, prices, outlets, bakery, catering, and contact details."
+      },
+      "id": "vector-tool-007",
+      "name": "Vector Store Tool",
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1,
+      "position": [
+        560,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "n8n Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve cafe_knowledge_base": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Vector Store Tool",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Retrieve cafe_knowledge_base",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true,
+  "meta": {
+    "cloudUrl": "https://ayush894.app.n8n.cloud/workflow/P3rPvPnoxeQDqDvr",
+    "webhookUrl": "https://ayush894.app.n8n.cloud/webhook/cafe-chat",
+    "webhookTestUrl": "https://ayush894.app.n8n.cloud/webhook-test/cafe-chat"
+  }
+}
