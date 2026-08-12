@@ -858,38 +858,58 @@
 
         function generateLocalRAGResponse(query) {
             const rawQ = (query || '').toLowerCase().trim();
-            const q = rawQ.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            // Typo normalization (e.g. magrita -> margherita, margarita -> margherita)
+            let q = rawQ.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (q.includes('magrita') || q.includes('margarita')) {
+                q = q.replace('magrita', 'margherita').replace('margarita', 'margherita');
+            }
+
             const items = window.menuItems || [];
 
             if (!q) return "Welcome to Café Upper Crust! Please ask about our menu, prices, outlets, bakery, timings, or catering services.";
 
-            // Helper to search items
-            function searchItems(term) {
-                const t = term.toLowerCase();
-                return items.filter(i => 
-                    i.name.toLowerCase().includes(t) || 
-                    i.category.toLowerCase().includes(t) || 
-                    i.description.toLowerCase().includes(t) || 
-                    i.id.toLowerCase().includes(t)
-                );
+            // -------------------------------------------------------------
+            // HIGHEST PRIORITY: SPECIFIC DISH ITEM MATCHING
+            // If user searches for a specific food item, return ONLY that item!
+            // -------------------------------------------------------------
+            const specificItemMatch = items.find(i => {
+                const name = i.name.toLowerCase();
+                const id = i.id.toLowerCase();
+                // Check if query contains the dish name or id
+                if (q.includes(name) || name.includes(q)) return true;
+                if (q.includes(id.replace(/-/g, ' '))) return true;
+                
+                // Specific keyword aliases
+                if ((q.includes('margherita') || q.includes('magrita')) && id === 'margherita-pizza') return true;
+                if (q.includes('pepperoni') && id === 'pepperoni-pizza') return true;
+                if (q.includes('paneer butter') && id === 'paneer-butter-masala') return true;
+                if (q.includes('dal makhani') && id === 'dal-makhani') return true;
+                if (q.includes('butter chicken') && id === 'butter-chicken') return true;
+                if (q.includes('chicken alfredo') && id === 'chicken-alfredo-pasta') return true;
+                if (q.includes('arrabbiata') && id === 'penne-arrabbiata') return true;
+                if (q.includes('pesto') && id === 'pesto-pasta') return true;
+                if ((q.includes('mac cheese') || q.includes('mac and cheese') || q.includes('macaroni')) && id === 'mac-and-cheese') return true;
+                if (q.includes('bolognese') && id === 'spaghetti-bolognese') return true;
+                
+                return false;
+            });
+
+            if (specificItemMatch) {
+                lastDiscussedItem = specificItemMatch;
+                const emoji = specificItemMatch.category === 'pizza' ? '🍕' :
+                              specificItemMatch.category === 'pasta' ? '🍝' :
+                              specificItemMatch.category === 'sizzlers' ? '🥩' :
+                              specificItemMatch.category === 'desserts' || specificItemMatch.category === 'cakes' ? '🍰' :
+                              specificItemMatch.category === 'beverages' ? '🥤' : '🍽️';
+                return `${emoji} **${specificItemMatch.name}**\n\n${specificItemMatch.description}\n\n💰 **₹${specificItemMatch.price}**\n${specificItemMatch.type === 'veg' ? '🟢 **Vegetarian**' : '🔴 **Non-Vegetarian**'}`;
             }
 
-            // SPECIFIC ITEM QUERY: Mac & Cheese
-            if (q === 'mac cheese' || q === 'mac and cheese' || q.includes('mac cheese') || q.includes('mac and cheese')) {
-                const mac = items.find(i => i.id === 'mac-and-cheese') || { name: 'Mac & Cheese', price: 245, type: 'veg', description: 'Baked elbow macaroni in rich creamy cheddar cheese sauce.' };
-                lastDiscussedItem = mac;
-                return "🧀 **Mac & Cheese**\n\nCreamy baked macaroni in rich cheddar cheese sauce.\n\n💰 **₹245**\n🟢 **Vegetarian**";
-            }
-
-            // SPECIFIC ITEM QUERY: Chicken Alfredo Pasta
-            if (q.includes('chicken alfredo')) {
-                const alfredo = items.find(i => i.id === 'chicken-alfredo-pasta') || { name: 'Chicken Alfredo Pasta', price: 345, type: 'non-veg', description: 'Creamy fettuccine Alfredo pasta with grilled chicken and parmesan.' };
-                lastDiscussedItem = alfredo;
-                return "🍝 **Chicken Alfredo Pasta**\n\nCreamy fettuccine Alfredo pasta with grilled chicken and parmesan.\n\n💰 **₹345**\n🔴 **Non-Vegetarian**";
-            }
+            // -------------------------------------------------------------
+            // SECOND PRIORITY: CATEGORY LIST & GENERAL QUERIES
+            // -------------------------------------------------------------
 
             // 1. Menu / Food / Detail Represented
-            if (q === 'menu' || q.includes('menu') || q === 'food' || q.includes('dishes') || q.includes('detail') || q.includes('categories')) {
+            if (q === 'menu' || q.includes('full menu') || q === 'food' || q.includes('dishes') || q.includes('detail') || q.includes('categories')) {
                 return "📋 **Café Upper Crust Full Menu Categories:**\n\n1. 🍢 **Starters:** Paneer Tikka, Chicken Tikka, Kebab (₹195 – ₹395)\n2. 🍲 **Soups:** Tomato Basil, Hot & Sour, Manchow (₹165 – ₹195)\n3. 🍛 **Indian Main Course:** Dal Makhani, Paneer Butter Masala, Biryani (₹245 – ₹425)\n4. 🥢 **Chinese:** Manchurian, Chicken Chilli, Noodles (₹195 – ₹295)\n5. 🍕 **Italian & Pizza:** Margherita, Pepperoni Pizza (₹295 – ₹395)\n6. 🍜 **Thai Cuisines:** Green Curry, Red Curry, Pad Thai (₹275 – ₹365)\n7. 🍝 **Pasta Specialties:** Penne Arrabbiata, Alfredo, Pesto (₹245 – ₹345)\n8. 🥩 **Sizzlers:** Veg, Chicken, Fish Sizzlers (₹345 – ₹425)\n9. 🍰 **Desserts & Cakes:** Truffle Cake, Tiramisu, Brownie (₹125 – ₹225)\n10. 🥤 **Beverages:** Masala Chai, Cold Coffee, Mojito (₹65 – ₹155)\n\nType any category or dish name for instant pricing and details!";
             }
 
@@ -900,12 +920,7 @@
 
             // 3. Pricing / Price / Cost / Rate / Bhav
             if (q === 'pricing' || q.includes('price') || q.includes('pricing') || q.includes('cost') || q.includes('rate') || q.includes('bhav')) {
-                const directMatch = items.find(i => q.includes(i.name.toLowerCase()) || q.includes(i.id.toLowerCase()));
-                if (directMatch) {
-                    lastDiscussedItem = directMatch;
-                    return `💰 **Price of ${directMatch.name}:** ₹${directMatch.price} (${directMatch.type === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'})\n\n${directMatch.description}`;
-                }
-                return "💰 **Café Upper Crust Price Overview:**\n\n• **Beverages:** starting at ₹65\n• **Desserts & Cakes:** ₹125 – ₹225\n• **Starters:** ₹195 – ₹395\n• **Pasta & Noodles:** ₹195 – ₹345\n• **Pizzas:** ₹295 – ₹395\n• **Indian Main Course:** ₹245 – ₹425\n• **Sizzlers:** ₹345 – ₹425\n\nType any dish name (e.g. *'Paneer Tikka price'* or *'Pizza price'*) to get exact pricing!";
+                return "💰 **Café Upper Crust Price Overview:**\n\n• **Beverages:** starting at ₹65\n• **Desserts & Cakes:** ₹125 – ₹225\n• **Starters:** ₹195 – ₹395\n• **Pasta & Noodles:** ₹195 – ₹345\n• **Pizzas:** ₹295 – ₹395\n• **Indian Main Course:** ₹245 – ₹425\n• **Sizzlers:** ₹345 – ₹425\n\nType any dish name (e.g. *'Margherita Pizza'* or *'Paneer Tikka'*) to get exact pricing!";
             }
 
             // 4. Cafe Upper Crust / Upper Crust Overview
@@ -914,7 +929,7 @@
             }
 
             // 5. Non-Vegetarian
-            if (q.includes('nonvegetarian') || q.includes('nonveg') || q.includes('non veg') || q.includes('chicken') || q.includes('mutton') || q.includes('fish') || q.includes('meat')) {
+            if (q.includes('nonvegetarian') || q.includes('nonveg') || q.includes('non veg')) {
                 return "🔴 **Popular Non-Vegetarian Specialties:**\n\n• **Butter Chicken** — ₹345\n• **Mutton Rogan Josh** — ₹425\n• **Chicken Tikka** — ₹345\n• **Chicken Sizzler** — ₹395\n• **Pepperoni Pizza** — ₹395\n• **Fish Amritsari** — ₹395\n• **Chicken Alfredo Pasta** — ₹345";
             }
 
@@ -923,7 +938,7 @@
                 return "🟢 **Popular Vegetarian Dishes:**\n\n• **Paneer Butter Masala** — ₹295\n• **Dal Makhani** — ₹245\n• **Penne Arrabbiata** — ₹275\n• **Pesto Pasta** — ₹275\n• **Veg Sizzler** — ₹345\n• **Veg Biryani** — ₹265\n• **Chocolate Truffle Cake** — ₹165";
             }
 
-            // 7. Pizzas / Pizza
+            // 7. Pizzas / Pizza Category
             if (q.includes('pizza')) {
                 lastContextCategory = 'pizza';
                 return "🍕 **Café Upper Crust Pizza Menu:**\n\n• **Margherita Pizza** — ₹295 (🟢 Veg)\n• **Pepperoni Pizza** — ₹395 (🔴 Non-Veg)\n\nFreshly baked thin crust with rich tomato sauce and melted mozzarella cheese.";
@@ -1032,15 +1047,8 @@
                 return "🏷️ **Offers & Bakery Deals:**\n\nAsk in-store for our daily freshly baked cookie box combos, celebration cake specials, and festival hamper packages!";
             }
 
-            // 28. Search by specific dish keyword
-            const matchedItem = items.find(i => q.includes(i.name.toLowerCase()) || q.includes(i.id.toLowerCase()));
-            if (matchedItem) {
-                lastDiscussedItem = matchedItem;
-                return `🍽️ **${matchedItem.name}** (${matchedItem.type === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'})\n\n• **Price:** ₹${matchedItem.price}\n• **Category:** ${matchedItem.category.toUpperCase()}\n• **Description:** ${matchedItem.description}`;
-            }
-
             // Fallback overview
-            return "Welcome to Café Upper Crust! 👋\n\nI can help you with:\n• **Dishes & Prices:** Type any food item (e.g., *'Paneer Tikka'*, *'Pizza'*, *'Pasta'*)\n• **Menu Categories:** Type *'Menu'* or *'Price list'*\n• **Dietary Options:** Type *'Veg'* or *'Non-Veg'*\n• **Outlets & Timings:** Type *'Outlets'* or *'Timings'*\n• **Contact & Catering:** Type *'Contact'* or *'Catering'*\n\nWhat would you like to know?";
+            return "Welcome to Café Upper Crust! 👋\n\nI can help you with:\n• **Dishes & Prices:** Type any food item (e.g., *'Paneer Tikka'*, *'Margherita Pizza'*, *'Mac & Cheese'*)\n• **Menu Categories:** Type *'Menu'* or *'Price list'*\n• **Dietary Options:** Type *'Veg'* or *'Non-Veg'*\n• **Outlets & Timings:** Type *'Outlets'* or *'Timings'*\n• **Contact & Catering:** Type *'Contact'* or *'Catering'*\n\nWhat would you like to know?";
         }
 
         function appendMessage(msg, sender) {
