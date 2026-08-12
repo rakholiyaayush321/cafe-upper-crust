@@ -862,37 +862,65 @@
 
         function generateLocalRAGResponse(query) {
             const rawQ = (query || '').toLowerCase().trim();
-            // Typo normalization (e.g. magrita -> margherita, margarita -> margherita)
             let q = rawQ.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+
+            // Typo normalizations
             if (q.includes('magrita') || q.includes('margarita')) {
                 q = q.replace('magrita', 'margherita').replace('margarita', 'margherita');
             }
 
             const items = window.menuItems || [];
-
             if (!q) return "Welcome to Café Upper Crust! Please ask about our menu, prices, outlets, bakery, timings, or catering services.";
 
+            // Category words that should ALWAYS trigger category list views (NOT single items)
+            const categoryKeywords = [
+                'pasta', 'pastas', 'pizza', 'pizzas', 'sizzler', 'sizzlers', 
+                'burger', 'burgers', 'dessert', 'desserts', 'cake', 'cakes', 
+                'beverage', 'beverages', 'drink', 'drinks', 'bread', 'breads', 
+                'cookie', 'cookies', 'soup', 'soups', 'starter', 'starters', 
+                'chinese', 'thai', 'indian', 'menu', 'food'
+            ];
+
+            const isExactCategoryQuery = categoryKeywords.some(cat => q === cat || q === cat + 's' || q === 'view ' + cat || q === 'show ' + cat);
+
             // -------------------------------------------------------------
-            // HIGHEST PRIORITY: SPECIFIC DISH ITEM MATCHING
-            // If user searches for a specific food item, return ONLY that item!
+            // 1. SPECIFIC DISH ITEM MATCHING (ONLY when NOT a broad category query)
             // -------------------------------------------------------------
-            const specificItemMatch = items.find(i => {
-                const name = i.name.toLowerCase();
-                const id = i.id.toLowerCase();
-                if (q.includes(name) || name.includes(q)) return true;
-                if (q.includes(id.replace(/-/g, ' '))) return true;
-                if ((q.includes('margherita') || q.includes('magrita')) && id === 'margherita-pizza') return true;
-                if (q.includes('pepperoni') && id === 'pepperoni-pizza') return true;
-                if (q.includes('paneer butter') && id === 'paneer-butter-masala') return true;
-                if (q.includes('dal makhani') && id === 'dal-makhani') return true;
-                if (q.includes('butter chicken') && id === 'butter-chicken') return true;
-                if (q.includes('chicken alfredo') && id === 'chicken-alfredo-pasta') return true;
-                if (q.includes('arrabbiata') && id === 'penne-arrabbiata') return true;
-                if (q.includes('pesto') && id === 'pesto-pasta') return true;
-                if ((q.includes('mac cheese') || q.includes('mac and cheese') || q.includes('macaroni')) && id === 'mac-and-cheese') return true;
-                if (q.includes('bolognese') && id === 'spaghetti-bolognese') return true;
-                return false;
-            });
+            let specificItemMatch = null;
+
+            if (!isExactCategoryQuery) {
+                specificItemMatch = items.find(i => {
+                    const name = i.name.toLowerCase();
+                    const id = i.id.toLowerCase();
+                    const idWords = id.replace(/-/g, ' ');
+
+                    // Exact full match
+                    if (q === name || q === idWords) return true;
+
+                    // Specific dish identifiers (NOT generic category words)
+                    if (q.includes('margherita') && id === 'margherita-pizza') return true;
+                    if (q.includes('pepperoni') && id === 'pepperoni-pizza') return true;
+                    if (q.includes('paneer butter') && id === 'paneer-butter-masala') return true;
+                    if (q.includes('dal makhani') && id === 'dal-makhani') return true;
+                    if (q.includes('butter chicken') && id === 'butter-chicken') return true;
+                    if (q.includes('alfredo') && id === 'chicken-alfredo-pasta') return true;
+                    if (q.includes('arrabbiata') && id === 'penne-arrabbiata') return true;
+                    if (q.includes('pesto') && id === 'pesto-pasta') return true;
+                    if ((q.includes('mac cheese') || q.includes('mac and cheese') || q.includes('macaroni')) && id === 'mac-and-cheese') return true;
+                    if (q.includes('bolognese') && id === 'spaghetti-bolognese') return true;
+                    if (q.includes('rogan josh') && id === 'mutton-rogan-josh') return true;
+                    if (q.includes('amritsari') && id === 'fish-amritsari') return true;
+                    if (q.includes('truffle') && id.includes('truffle')) return true;
+                    if (q.includes('tiramisu') && id === 'tiramisu') return true;
+                    if (q.includes('brownie') && id === 'brownie-ice-cream') return true;
+                    if (q.includes('gulab jamun') && id === 'gulab-jamun') return true;
+
+                    // If query contains dish name but query is longer than category word
+                    if (name.length > 5 && q.includes(name)) return true;
+
+                    return false;
+                });
+            }
 
             if (specificItemMatch) {
                 lastDiscussedItem = specificItemMatch;
@@ -905,119 +933,96 @@
             }
 
             // -------------------------------------------------------------
-            // SECOND PRIORITY: CATEGORY LIST & GENERAL QUERIES
+            // 2. CATEGORY LIST & GENERAL QUERIES
             // -------------------------------------------------------------
 
-            if (q === 'menu' || q.includes('full menu') || q === 'food' || q.includes('dishes') || q.includes('detail') || q.includes('categories')) {
-                return "📋 **Café Upper Crust Full Menu Categories:**\n\n1. 🍢 **Starters:** Paneer Tikka, Chicken Tikka, Kebab (₹195 – ₹395)\n2. 🍲 **Soups:** Tomato Basil, Hot & Sour, Manchow (₹165 – ₹195)\n3. 🍛 **Indian Main Course:** Dal Makhani, Paneer Butter Masala, Biryani (₹245 – ₹425)\n4. 🥢 **Chinese:** Manchurian, Chicken Chilli, Noodles (₹195 – ₹295)\n5. 🍕 **Italian & Pizza:** Margherita, Pepperoni Pizza (₹295 – ₹395)\n6. 🍜 **Thai Cuisines:** Green Curry, Red Curry, Pad Thai (₹275 – ₹365)\n7. 🍝 **Pasta Specialties:** Penne Arrabbiata, Alfredo, Pesto (₹245 – ₹345)\n8. 🥩 **Sizzlers:** Veg, Chicken, Fish Sizzlers (₹345 – ₹425)\n9. 🍰 **Desserts & Cakes:** Truffle Cake, Tiramisu, Brownie (₹125 – ₹225)\n10. 🥤 **Beverages:** Masala Chai, Cold Coffee, Mojito (₹65 – ₹155)\n\nType any category or dish name for instant pricing and details!";
+            // Pastas / Pasta Category List
+            if (q.includes('pasta')) {
+                lastContextCategory = 'pasta';
+                return "🍝 **Café Upper Crust Pasta Menu:**\n\n• **Penne Arrabbiata** — ₹275 🟢 Veg\n• **Pesto Pasta** — ₹275 🟢 Veg\n• **Mac & Cheese** — ₹245 🟢 Veg\n• **Chicken Alfredo Pasta** — ₹345 🔴 Non-Veg\n• **Spaghetti Bolognese** — ₹325 🔴 Non-Veg\n\nType any specific pasta name (e.g. *'Chicken Alfredo'* or *'Penne Arrabbiata'*) for individual dish details & pricing!";
             }
 
-            if (q.includes('costliest') || q.includes('expensive') || q.includes('highest') || q.includes('premium')) {
-                return "⭐ **Signature Premium Specialties:**\n\n• **Fish Sizzler:** ₹425 (🔴 Non-Veg)\n• **Mutton Rogan Josh:** ₹425 (🔴 Non-Veg)\n• **Fish Amritsari:** ₹395 (🔴 Non-Veg)\n• **Chicken Sizzler:** ₹395 (🔴 Non-Veg)\n• **Pepperoni Pizza:** ₹395 (🔴 Non-Veg)";
-            }
-
-            if (q === 'pricing' || q.includes('price') || q.includes('pricing') || q.includes('cost') || q.includes('rate') || q.includes('bhav')) {
-                return "💰 **Café Upper Crust Price Overview:**\n\n• **Beverages:** starting at ₹65\n• **Desserts & Cakes:** ₹125 – ₹225\n• **Starters:** ₹195 – ₹395\n• **Pasta & Noodles:** ₹195 – ₹345\n• **Pizzas:** ₹295 – ₹395\n• **Indian Main Course:** ₹245 – ₹425\n• **Sizzlers:** ₹345 – ₹425\n\nType any dish name (e.g. *'Margherita Pizza'* or *'Paneer Tikka'*) to get exact pricing!";
-            }
-
-            if (q.includes('cafe upper crust') || q.includes('upper crust')) {
-                return "🥐 **Welcome to Café Upper Crust!**\n\nStarted on April 2nd, 1989 by Lester & Monisha D’souza, Café Upper Crust is Ahmedabad's iconic café and bakery destination serving Multi-Cuisine Dining, Artisan Bakery Products, Patisserie, and Event Catering.";
-            }
-
-            if (q.includes('nonvegetarian') || q.includes('nonveg') || q.includes('non veg')) {
-                return "🔴 **Popular Non-Vegetarian Specialties:**\n\n• **Butter Chicken** — ₹345\n• **Mutton Rogan Josh** — ₹425\n• **Chicken Tikka** — ₹345\n• **Chicken Sizzler** — ₹395\n• **Pepperoni Pizza** — ₹395\n• **Fish Amritsari** — ₹395\n• **Chicken Alfredo Pasta** — ₹345";
-            }
-
-            if (q.includes('vegetarian') || q.includes('pure veg') || q.includes('veg')) {
-                return "🟢 **Popular Vegetarian Dishes:**\n\n• **Paneer Butter Masala** — ₹295\n• **Dal Makhani** — ₹245\n• **Penne Arrabbiata** — ₹275\n• **Pesto Pasta** — ₹275\n• **Veg Sizzler** — ₹345\n• **Veg Biryani** — ₹265\n• **Chocolate Truffle Cake** — ₹165";
-            }
-
+            // Pizzas / Pizza Category
             if (q.includes('pizza')) {
                 lastContextCategory = 'pizza';
-                return "🍕 **Café Upper Crust Pizza Menu:**\n\n• **Margherita Pizza** — ₹295 (🟢 Veg)\n• **Pepperoni Pizza** — ₹395 (🔴 Non-Veg)\n\nFreshly baked thin crust with rich tomato sauce and melted mozzarella cheese.";
+                return "🍕 **Café Upper Crust Pizza Menu:**\n\n• **Margherita Pizza** — ₹295 🟢 Veg\n• **Pepperoni Pizza** — ₹395 🔴 Non-Veg\n\nFreshly baked thin crust with rich tomato sauce and melted mozzarella cheese.";
             }
 
-            if (q.includes('pasta') || q.includes('spaghetti')) {
-                lastContextCategory = 'pasta';
-                return "🍝 **Café Upper Crust Pasta Menu:**\n\n• **Penne Arrabbiata** — ₹275 🟢 Veg\n• **Pesto Pasta** — ₹275 🟢 Veg\n• **Mac & Cheese** — ₹245 🟢 Veg\n• **Chicken Alfredo Pasta** — ₹345 🔴 Non-Veg\n• **Spaghetti Bolognese** — ₹325 🔴 Non-Veg";
-            }
-
+            // Sizzlers / Sizzler
             if (q.includes('sizzler')) {
                 lastContextCategory = 'sizzler';
-                return "🥩 **Café Upper Crust Sizzler Platters:**\n\n• **Veg Sizzler** — ₹345 (🟢 Veg)\n• **Chicken Sizzler** — ₹395 (🔴 Non-Veg)\n• **Fish Sizzler** — ₹425 (🔴 Non-Veg)";
+                return "🥩 **Café Upper Crust Sizzler Platters:**\n\n• **Veg Sizzler** — ₹345 🟢 Veg\n• **Chicken Sizzler** — ₹395 🔴 Non-Veg\n• **Fish Sizzler** — ₹425 🔴 Non-Veg";
             }
 
-            if (q.includes('burger') || q.includes('sandwich')) {
+            // Burgers / Burger
+            if (q.includes('burger') || q.includes('sandwich') || q.includes('puff') || q.includes('roll')) {
                 return "🍔 **Café Upper Crust Burgers & Rolls:**\n\n• **Baked Cheese Roll** — ₹50\n• **Veg Potato Puff** — ₹35\n• **Paneer Cottage Cheese Puff** — ₹45\n• **Grilled Cheese Sandwich** — ₹165";
             }
 
+            // Desserts / Dessert
             if (q.includes('dessert')) {
                 lastContextCategory = 'dessert';
                 return "🍰 **Café Upper Crust Desserts:**\n\n• **Chocolate Truffle Cake** — ₹165\n• **Red Velvet Cake** — ₹175\n• **Brownie with Ice Cream** — ₹195\n• **Tiramisu** — ₹225\n• **Gulab Jamun** — ₹125";
             }
 
+            // Cakes / Cake
             if (q.includes('cake')) {
                 return "🎂 **Café Upper Crust Cakes:**\n\n• **Dutch Chocolate Truffle Cake** — ₹550/kg\n• **Red Velvet Cream Cheese Cake** — ₹650/kg\n• **Black Forest Cherry Cake** — ₹500/kg\n• **Fresh Pineapple Gateau** — ₹480/kg";
             }
 
+            // Bakery / Breads / Cookies
             if (q.includes('bakery') || q.includes('bread') || q.includes('cookie') || q.includes('khari') || q.includes('toast')) {
                 return "🥖 **Café Upper Crust Bakery Selection:**\n\n• **Fresh Breads:** Sandwich Bread (₹45), Brown Bread (₹55), Multigrain (₹65), Garlic Loaf (₹75)\n• **Cookies:** Butter Cookies (₹180/box), Choco Chip (₹200/box), Nan Khatai (₹160/box), Almond Cookies (₹220/box)\n• **Khari & Toast:** Layered Khari (₹120/box), Masala Khari (₹130/box), Milk Toast Rusks (₹110/box)";
             }
 
+            // Beverages / Drinks
             if (q.includes('beverage') || q.includes('drink') || q.includes('coffee') || q.includes('chai') || q.includes('soda') || q.includes('lassi') || q.includes('mojito')) {
                 return "🥤 **Café Upper Crust Beverages:**\n\n• **Masala Chai** — ₹65\n• **Cold Coffee** — ₹145\n• **Fresh Lime Soda** — ₹95\n• **Mango Lassi** — ₹125\n• **Virgin Mojito** — ₹155";
             }
 
+            // Menu / Food / Detail Represented
+            if (q === 'menu' || q.includes('full menu') || q === 'food' || q.includes('dishes') || q.includes('detail') || q.includes('categories')) {
+                return "📋 **Café Upper Crust Full Menu Categories:**\n\n1. 🍢 **Starters:** Paneer Tikka, Chicken Tikka, Kebab (₹195 – ₹395)\n2. 🍲 **Soups:** Tomato Basil, Hot & Sour, Manchow (₹165 – ₹195)\n3. 🍛 **Indian Main Course:** Dal Makhani, Paneer Butter Masala, Biryani (₹245 – ₹425)\n4. 🥢 **Chinese:** Manchurian, Chicken Chilli, Noodles (₹195 – ₹295)\n5. 🍕 **Italian & Pizza:** Margherita, Pepperoni Pizza (₹295 – ₹395)\n6. 🍜 **Thai Cuisines:** Green Curry, Red Curry, Pad Thai (₹275 – ₹365)\n7. 🍝 **Pasta Specialties:** Penne Arrabbiata, Alfredo, Pesto (₹245 – ₹345)\n8. 🥩 **Sizzlers:** Veg, Chicken, Fish Sizzlers (₹345 – ₹425)\n9. 🍰 **Desserts & Cakes:** Truffle Cake, Tiramisu, Brownie (₹125 – ₹225)\n10. 🥤 **Beverages:** Masala Chai, Cold Coffee, Mojito (₹65 – ₹155)\n\nType any category or dish name for instant pricing and details!";
+            }
+
+            // Costliest / Premium
+            if (q.includes('costliest') || q.includes('expensive') || q.includes('highest') || q.includes('premium')) {
+                return "⭐ **Signature Premium Specialties:**\n\n• **Fish Sizzler:** ₹425 (🔴 Non-Veg)\n• **Mutton Rogan Josh:** ₹425 (🔴 Non-Veg)\n• **Fish Amritsari:** ₹395 (🔴 Non-Veg)\n• **Chicken Sizzler:** ₹395 (🔴 Non-Veg)\n• **Pepperoni Pizza:** ₹395 (🔴 Non-Veg)";
+            }
+
+            // Pricing / Price / Cost / Rate / Bhav
+            if (q === 'pricing' || q.includes('price') || q.includes('pricing') || q.includes('cost') || q.includes('rate') || q.includes('bhav')) {
+                return "💰 **Café Upper Crust Price Overview:**\n\n• **Beverages:** starting at ₹65\n• **Desserts & Cakes:** ₹125 – ₹225\n• **Starters:** ₹195 – ₹395\n• **Pasta & Noodles:** ₹195 – ₹345\n• **Pizzas:** ₹295 – ₹395\n• **Indian Main Course:** ₹245 – ₹425\n• **Sizzlers:** ₹345 – ₹425\n\nType any dish name (e.g. *'Margherita Pizza'* or *'Paneer Tikka'*) to get exact pricing!";
+            }
+
+            // Non-Vegetarian
+            if (q.includes('nonvegetarian') || q.includes('nonveg') || q.includes('non veg')) {
+                return "🔴 **Popular Non-Vegetarian Specialties:**\n\n• **Butter Chicken** — ₹345\n• **Mutton Rogan Josh** — ₹425\n• **Chicken Tikka** — ₹345\n• **Chicken Sizzler** — ₹395\n• **Pepperoni Pizza** — ₹395\n• **Fish Amritsari** — ₹395\n• **Chicken Alfredo Pasta** — ₹345";
+            }
+
+            // Vegetarian
+            if (q.includes('vegetarian') || q.includes('pure veg') || q.includes('veg')) {
+                return "🟢 **Popular Vegetarian Dishes:**\n\n• **Paneer Butter Masala** — ₹295\n• **Dal Makhani** — ₹245\n• **Penne Arrabbiata** — ₹275\n• **Pesto Pasta** — ₹275\n• **Veg Sizzler** — ₹345\n• **Veg Biryani** — ₹265\n• **Chocolate Truffle Cake** — ₹165";
+            }
+
+            // Outlets / Locations / Address
             if (q.includes('outlet') || q.includes('location') || q.includes('branch') || q.includes('where') || q.includes('address')) {
                 return "📍 **Café Upper Crust Outlets in Ahmedabad:**\n\n1. **Vastrapur:** Near Vastrapur Lake\n2. **Vijay Cross Road:** Near Commerce College, Navrangpura\n3. **Prahladnagar:** Parshwanath Business Park\n4. **Satellite:** Near Shivranjani Cross Roads\n5. **Bodakdev:** Near JUDGES Bungalow Road\n\nAll outlets are open daily from 11:00 AM to 11:00 PM.";
             }
 
+            // Timings / Hours / Time
             if (q.includes('timing') || q.includes('hour') || q.includes('time') || q.includes('open') || q.includes('close') || q.includes('schedule')) {
                 return "⏰ **Café Upper Crust Operating Hours & Timings:**\n\n• **Restaurant & Dine-in:** 11:00 AM – 11:00 PM (Daily)\n• **Bakery & Pastry Counter:** 8:30 AM – 11:00 PM (Daily)\n• **Takeaway & Online Orders:** 11:00 AM – 10:30 PM (Daily)\n• **Catering Enquiries:** 10:00 AM – 7:00 PM";
             }
 
+            // Catering / Shagun / Lithosphere
             if (q.includes('catering') || q.includes('event') || q.includes('wedding') || q.includes('party') || q.includes('shagun') || q.includes('lithosphere')) {
                 return "👥 **Shagun Catering by Café Upper Crust:**\n\n• **Capacity:** Outdoor catering up to 5,000 people.\n• **Staff:** Over 150 dedicated catering professionals.\n• **Services:** Corporate meetings, conferences, weddings, and private parties.\n• **Sister Brand:** Lithosphere (Pâtisserie, Boulangerie, Fine-Dine & Rooftop).";
             }
 
-            if (q.includes('hamper')) {
-                return "🎁 **Café Upper Crust Gift & Festival Hampers:**\n\nExquisite festive hampers featuring artisanal cookies, double-baked rusks, dry fruit bites, chocolates, and handcrafted bakery delicacies. Perfect for corporate gifting and special celebrations!";
-            }
-
-            if (q.includes('patisserie')) {
-                return "🥐 **Patisserie Specialties:**\n\nFresh French pastries, chocolate eclairs, fruit tarts, macarons, and signature cream cheese pastries available daily at our bakery counters!";
-            }
-
-            if (q.includes('cheap') || q.includes('lowest') || q.includes('budget') || q.includes('min')) {
-                return "💡 **Most Affordable Favorites:**\n\n• **Veg Potato Puff:** ₹35\n• **Baked Cheese Roll:** ₹50\n• **Masala Chai:** ₹65\n• **Fresh Lime Soda:** ₹95\n• **Crispy Milk Toast Rusk:** ₹110/box\n• **Gulab Jamun:** ₹125";
-            }
-
-            if (q.includes('spicy') || q.includes('hot')) {
-                return "🌶️ **Spicy Culinary Specialties:**\n\n• **Chicken Chilli** — Wok-tossed green chillies & chicken\n• **Schezwan Noodles** — Spicy Schezwan vegetable noodles\n• **Penne Arrabbiata** — Spicy garlic tomato arrabbiata pasta\n• **Mutton Rogan Josh** — Kashmiri red spice curry\n• **Hot & Sour Soup** — Tangy spicy Chinese broth";
-            }
-
-            if (q.includes('healthy') || q.includes('diet') || q.includes('light')) {
-                return "🥗 **Healthy Choices:**\n\n• **Tomato Basil Soup** — Light velvety tomato soup\n• **Thai Green Curry** — Coconut curry with fresh Thai veggies\n• **Multigrain Seed Bread** — High-fiber seed loaf\n• **Fresh Lime Soda** — Sparkling lime & mint refresher";
-            }
-
-            if (q.includes('popular') || q.includes('best') || q.includes('recommend') || q.includes('famous')) {
-                return "🌟 **Café Upper Crust Signature Best-Sellers:**\n\n1. **Paneer Tikka** (₹295)\n2. **Chicken Sizzler** (₹395)\n3. **Chicken Alfredo Pasta** (₹345)\n4. **Chocolate Truffle Cake** (₹165)\n5. **Masala Chai** (₹65)";
-            }
-
-            if (q.includes('availab') || q.includes('stock')) {
-                return "✅ **Item Availability:**\n\nAll 47 menu dishes, bakery items, cakes, and beverages are freshly prepared daily and available for Dine-in, Takeaway, and Delivery from 11:00 AM to 11:00 PM!";
-            }
-
+            // Contact / Phone / Email
             if (q.includes('contact') || q.includes('phone') || q.includes('number') || q.includes('email') || q.includes('call')) {
                 return "📍 **Contact Information:**\n\n• **Phone:** +91 82381 37060 | +91 90999 77444 | +91 98240 22811\n• **Email:** contact@cafeuppercrust.com\n• **Office Address:** 1009, Parshwanath Business Park, Prahladnagar, Ahmedabad.";
-            }
-
-            if (q.includes('delivery') || q.includes('takeaway') || q.includes('order') || q.includes('online')) {
-                return "🛵 **Takeaway & Online Delivery:**\n\nAvailable daily from 11:00 AM to 10:30 PM! Order online via food delivery apps or call our outlets directly for takeaway pickup.";
-            }
-
-            if (q.includes('offer') || q.includes('discount') || q.includes('deal') || q.includes('combo')) {
-                return "🏷️ **Offers & Bakery Deals:**\n\nAsk in-store for our daily freshly baked cookie box combos, celebration cake specials, and festival hamper packages!";
             }
 
             return "Welcome to Café Upper Crust! 👋\n\nI can help you with:\n• **Dishes & Prices:** Type any food item (e.g., *'Paneer Tikka'*, *'Margherita Pizza'*, *'Mac & Cheese'*)\n• **Menu Categories:** Type *'Menu'* or *'Price list'*\n• **Dietary Options:** Type *'Veg'* or *'Non-Veg'*\n• **Outlets & Timings:** Type *'Outlets'* or *'Timings'*\n• **Contact & Catering:** Type *'Contact'* or *'Catering'*\n\nWhat would you like to know?";
