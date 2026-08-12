@@ -580,17 +580,19 @@
 
     // 14. CAFÉ UPPER CRUST AI CHATBOT WIDGET
     // 14. CAFÉ UPPER CRUST DUAL-ENGINE AI CHATBOT WIDGET
+    // 14. CAFÉ UPPER CRUST DUAL-ENGINE AI CHATBOT WIDGET WITH CONTINUOUS CONTEXTUAL CHIPS
+    // 14. CAFÉ UPPER CRUST DUAL-ENGINE AI CHATBOT WIDGET WITH PERMANENT VISIBLE CHIPS BAR
     function initChatWidget() {
         if (document.getElementById('cafe-chat-container')) return;
 
-        // Session ID management
+        // Session ID management (Persistent per visitor)
         let sessionId = localStorage.getItem('cafe_chat_session_id');
         if (!sessionId) {
             sessionId = 'session_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
             localStorage.setItem('cafe_chat_session_id', sessionId);
         }
 
-        // Multi-turn context memory
+        // Context Memory
         let lastContextCategory = null;
         let lastDiscussedItem = null;
 
@@ -624,16 +626,15 @@
                 <div class="chat-message bot">
                     <p>Welcome to Café Upper Crust! 👋</p>
                     <p>I can help you with our menu, prices, outlets, bakery, catering and more. What would you like to know?</p>
-                    <div class="chat-suggestions">
-                        <button class="suggestion-chip" data-msg="What pizzas do you have?">🍕 View Pizza Menu</button>
-                        <button class="suggestion-chip" data-msg="What pasta do you have?">🍝 View Pasta Menu</button>
-                        <button class="suggestion-chip" data-msg="What cakes and desserts do you have?">🍰 Cakes & Desserts</button>
-                        <button class="suggestion-chip" data-msg="Where are your outlets?">📍 Find Our Outlets</button>
-                        <button class="suggestion-chip" data-msg="What beverages do you have?">🥤 Beverages</button>
-                        <button class="suggestion-chip" data-msg="What are your opening hours and timings?">⏰ Store Timings</button>
-                        <button class="suggestion-chip" data-msg="What are your contact details?">📞 Contact Us</button>
-                    </div>
                 </div>
+            </div>
+            <div class="chat-suggestions-bar" id="chat-suggestions-bar">
+                <button class="suggestion-chip" data-msg="What pizzas do you have?">🍕 Pizza Menu</button>
+                <button class="suggestion-chip" data-msg="What pasta do you have?">🍝 Pasta Menu</button>
+                <button class="suggestion-chip" data-msg="What cakes and desserts do you have?">🍰 Cakes & Desserts</button>
+                <button class="suggestion-chip" data-msg="Where are your outlets?">📍 Outlets</button>
+                <button class="suggestion-chip" data-msg="What are your opening hours and timings?">⏰ Timings</button>
+                <button class="suggestion-chip" data-msg="What are your contact details?">📞 Contact</button>
             </div>
             <div class="chat-widget-footer">
                 <input type="text" class="chat-input" id="chat-input" placeholder="Type your question..." aria-label="Type your message">
@@ -648,6 +649,7 @@
         const chatBody = document.getElementById('chat-widget-body');
         const chatInput = document.getElementById('chat-input');
         const sendBtn = document.getElementById('chat-send-btn');
+        const suggestionsBar = document.getElementById('chat-suggestions-bar');
 
         toggleBtn.addEventListener('click', () => {
             chatContainer.classList.toggle('active');
@@ -660,10 +662,11 @@
             chatContainer.classList.remove('active');
         });
 
-        // Handle Suggestions
+        // Delegate Suggestion Chip Clicks on permanent bar
         chatContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('suggestion-chip')) {
-                const text = e.target.getAttribute('data-msg');
+            const chip = e.target.closest('.suggestion-chip');
+            if (chip) {
+                const text = chip.getAttribute('data-msg') || chip.textContent.trim();
                 if (text) sendMessage(text);
             }
         });
@@ -687,10 +690,11 @@
             sendBtn.disabled = true;
 
             const typingEl = appendTypingIndicator();
+            scrollToBottom();
 
             let reply = null;
 
-            // Attempt to fetch from n8n cloud endpoints first with 3.5s timeout
+            // Attempt remote n8n RAG cloud endpoints
             for (const ep of endpoints) {
                 try {
                     const controller = new AbortController();
@@ -710,24 +714,150 @@
                         if (reply) break;
                     }
                 } catch (e) {
-                    // Try next endpoint or fallback to smart local RAG engine
+                    // Fallback to local RAG engine
                 }
             }
 
-            typingEl.remove();
+            if (typingEl) typingEl.remove();
 
-            // If remote n8n is offline or unreachable, run Local Smart RAG Engine
             if (!reply) {
                 reply = generateLocalRAGResponse(text);
             }
 
             appendMessage(reply, 'bot');
             sendBtn.disabled = false;
+
+            // Update permanent chips bar with contextual suggestions (keeps bar ALWAYS visible & clickable)
+            const suggestions = getContextualSuggestions(text, reply);
+            updateSuggestionChipsBar(suggestions);
+
+            scrollToBottom();
+        }
+
+        function updateSuggestionChipsBar(suggestions) {
+            if (!suggestionsBar) return;
+
+            if (!suggestions || !suggestions.length) {
+                suggestions = [
+                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
+                    { text: '🍰 Cakes & Desserts', msg: 'What cakes and desserts do you have?' },
+                    { text: '📍 Outlets', msg: 'Where are your outlets?' },
+                    { text: '⏰ Timings', msg: 'What are your store timings?' },
+                    { text: '📞 Contact', msg: 'What are your contact details?' }
+                ];
+            }
+
+            suggestionsBar.innerHTML = suggestions.map(item => {
+                const label = typeof item === 'string' ? item : item.text;
+                const msg = typeof item === 'string' ? item : item.msg;
+                return `<button class="suggestion-chip" data-msg="${msg}">${label}</button>`;
+            }).join('');
+        }
+
+        function getContextualSuggestions(userMessage, botResponse) {
+            const q = (userMessage || '').toLowerCase();
+
+            // 1. MAC & CHEESE / SPECIFIC PASTA DISH
+            if (q.includes('mac & cheese') || q.includes('mac and cheese') || q.includes('macaroni')) {
+                return [
+                    { text: '🥗 Vegetarian Pasta', msg: 'Which pasta is vegetarian?' },
+                    { text: '💰 Pasta Prices', msg: 'What are your pasta prices?' },
+                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                    { text: '🍰 Desserts', msg: 'What desserts do you have?' }
+                ];
+            }
+
+            // 2. PASTA
+            if (q.includes('pasta') || q.includes('spaghetti') || q.includes('alfredo') || q.includes('arrabbiata') || q.includes('pesto')) {
+                return [
+                    { text: '🥗 Vegetarian Pasta', msg: 'Which pasta is vegetarian?' },
+                    { text: '💰 Pasta Prices', msg: 'What are your pasta prices?' },
+                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                    { text: '🍰 Desserts', msg: 'What desserts do you have?' },
+                    { text: '📍 Outlets', msg: 'Where are your outlets?' }
+                ];
+            }
+
+            // 3. PIZZA
+            if (q.includes('pizza') || q.includes('margherita') || q.includes('pepperoni')) {
+                return [
+                    { text: '🍕 More Pizza', msg: 'What other pizzas do you have?' },
+                    { text: '🥗 Vegetarian Pizza', msg: 'Which pizza is vegetarian?' },
+                    { text: '💰 Pizza Prices', msg: 'What are your pizza prices?' },
+                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
+                    { text: '📍 Outlets', msg: 'Where are your outlets?' }
+                ];
+            }
+
+            // 4. BURGERS / PUFFS / ROLLS
+            if (q.includes('burger') || q.includes('puff') || q.includes('roll') || q.includes('sandwich')) {
+                return [
+                    { text: '🥗 Veg Burgers', msg: 'What veg burgers and rolls do you have?' },
+                    { text: '💰 Burger Prices', msg: 'What are the burger and puff prices?' },
+                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' }
+                ];
+            }
+
+            // 5. SIZZLERS
+            if (q.includes('sizzler')) {
+                return [
+                    { text: '🥗 Veg Sizzlers', msg: 'What veg sizzlers do you have?' },
+                    { text: '💰 Sizzler Prices', msg: 'What are the sizzler prices?' },
+                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' }
+                ];
+            }
+
+            // 6. DESSERTS / CAKES
+            if (q.includes('dessert') || q.includes('cake') || q.includes('truffle') || q.includes('brownie') || q.includes('tiramisu') || q.includes('jamun')) {
+                return [
+                    { text: '🍰 More Desserts', msg: 'What other desserts do you have?' },
+                    { text: '💰 Dessert Prices', msg: 'What are the dessert prices?' },
+                    { text: '🥤 Beverages', msg: 'What beverages do you have?' },
+                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' }
+                ];
+            }
+
+            // 7. OUTLETS / LOCATION / TIMINGS
+            if (q.includes('outlet') || q.includes('location') || q.includes('address') || q.includes('timing') || q.includes('hour') || q.includes('where') || q.includes('contact') || q.includes('phone')) {
+                return [
+                    { text: '📍 All Outlets', msg: 'Where are all your outlets in Ahmedabad?' },
+                    { text: '⏰ Store Timings', msg: 'What are your store timings?' },
+                    { text: '📞 Contact Us', msg: 'What are your contact details?' },
+                    { text: '🍽️ View Menu', msg: 'What is on your full menu?' }
+                ];
+            }
+
+            // 8. BAKERY
+            if (q.includes('bakery') || q.includes('bread') || q.includes('cookie') || q.includes('khari') || q.includes('hamper') || q.includes('patisserie')) {
+                return [
+                    { text: '🍰 Cakes', msg: 'What cakes do you have?' },
+                    { text: '🥐 Bakery Menu', msg: 'What bakery items do you have?' },
+                    { text: '🎁 Hampers', msg: 'Tell me about gift hampers' },
+                    { text: '📍 Outlets', msg: 'Where are your outlets?' }
+                ];
+            }
+
+            // DEFAULT / FALLBACK CHIPS
+            return [
+                { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
+                { text: '🍰 Cakes & Desserts', msg: 'What cakes and desserts do you have?' },
+                { text: '📍 Outlets', msg: 'Where are your outlets?' },
+                { text: '📞 Contact', msg: 'What are your contact details?' }
+            ];
+        }
+
+        function scrollToBottom() {
+            requestAnimationFrame(() => {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            });
         }
 
         function generateLocalRAGResponse(query) {
             const rawQ = (query || '').toLowerCase().trim();
-            // Punctuation stripper (strips ?, !, ., ,, etc.)
             const q = rawQ.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
             const items = window.menuItems || [];
 
@@ -744,12 +874,26 @@
                 );
             }
 
+            // SPECIFIC ITEM QUERY: Mac & Cheese
+            if (q === 'mac cheese' || q === 'mac and cheese' || q.includes('mac cheese') || q.includes('mac and cheese')) {
+                const mac = items.find(i => i.id === 'mac-and-cheese') || { name: 'Mac & Cheese', price: 245, type: 'veg', description: 'Baked elbow macaroni in rich creamy cheddar cheese sauce.' };
+                lastDiscussedItem = mac;
+                return "🧀 **Mac & Cheese**\n\nCreamy baked macaroni in rich cheddar cheese sauce.\n\n💰 **₹245**\n🟢 **Vegetarian**";
+            }
+
+            // SPECIFIC ITEM QUERY: Chicken Alfredo Pasta
+            if (q.includes('chicken alfredo')) {
+                const alfredo = items.find(i => i.id === 'chicken-alfredo-pasta') || { name: 'Chicken Alfredo Pasta', price: 345, type: 'non-veg', description: 'Creamy fettuccine Alfredo pasta with grilled chicken and parmesan.' };
+                lastDiscussedItem = alfredo;
+                return "🍝 **Chicken Alfredo Pasta**\n\nCreamy fettuccine Alfredo pasta with grilled chicken and parmesan.\n\n💰 **₹345**\n🔴 **Non-Vegetarian**";
+            }
+
             // 1. Menu / Food / Detail Represented
             if (q === 'menu' || q.includes('menu') || q === 'food' || q.includes('dishes') || q.includes('detail') || q.includes('categories')) {
                 return "📋 **Café Upper Crust Full Menu Categories:**\n\n1. 🍢 **Starters:** Paneer Tikka, Chicken Tikka, Kebab (₹195 – ₹395)\n2. 🍲 **Soups:** Tomato Basil, Hot & Sour, Manchow (₹165 – ₹195)\n3. 🍛 **Indian Main Course:** Dal Makhani, Paneer Butter Masala, Biryani (₹245 – ₹425)\n4. 🥢 **Chinese:** Manchurian, Chicken Chilli, Noodles (₹195 – ₹295)\n5. 🍕 **Italian & Pizza:** Margherita, Pepperoni Pizza (₹295 – ₹395)\n6. 🍜 **Thai Cuisines:** Green Curry, Red Curry, Pad Thai (₹275 – ₹365)\n7. 🍝 **Pasta Specialties:** Penne Arrabbiata, Alfredo, Pesto (₹245 – ₹345)\n8. 🥩 **Sizzlers:** Veg, Chicken, Fish Sizzlers (₹345 – ₹425)\n9. 🍰 **Desserts & Cakes:** Truffle Cake, Tiramisu, Brownie (₹125 – ₹225)\n10. 🥤 **Beverages:** Masala Chai, Cold Coffee, Mojito (₹65 – ₹155)\n\nType any category or dish name for instant pricing and details!";
             }
 
-            // 2. Costliest / Premium (BEFORE generic pricing check)
+            // 2. Costliest / Premium
             if (q.includes('costliest') || q.includes('expensive') || q.includes('highest') || q.includes('premium')) {
                 return "⭐ **Signature Premium Specialties:**\n\n• **Fish Sizzler:** ₹425 (🔴 Non-Veg)\n• **Mutton Rogan Josh:** ₹425 (🔴 Non-Veg)\n• **Fish Amritsari:** ₹395 (🔴 Non-Veg)\n• **Chicken Sizzler:** ₹395 (🔴 Non-Veg)\n• **Pepperoni Pizza:** ₹395 (🔴 Non-Veg)";
             }
@@ -769,7 +913,7 @@
                 return "🥐 **Welcome to Café Upper Crust!**\n\nStarted on April 2nd, 1989 by Lester & Monisha D’souza, Café Upper Crust is Ahmedabad's iconic café and bakery destination serving Multi-Cuisine Dining, Artisan Bakery Products, Patisserie, and Event Catering.";
             }
 
-            // 5. Non-Vegetarian (BEFORE vegetarian check)
+            // 5. Non-Vegetarian
             if (q.includes('nonvegetarian') || q.includes('nonveg') || q.includes('non veg') || q.includes('chicken') || q.includes('mutton') || q.includes('fish') || q.includes('meat')) {
                 return "🔴 **Popular Non-Vegetarian Specialties:**\n\n• **Butter Chicken** — ₹345\n• **Mutton Rogan Josh** — ₹425\n• **Chicken Tikka** — ₹345\n• **Chicken Sizzler** — ₹395\n• **Pepperoni Pizza** — ₹395\n• **Fish Amritsari** — ₹395\n• **Chicken Alfredo Pasta** — ₹345";
             }
@@ -785,10 +929,10 @@
                 return "🍕 **Café Upper Crust Pizza Menu:**\n\n• **Margherita Pizza** — ₹295 (🟢 Veg)\n• **Pepperoni Pizza** — ₹395 (🔴 Non-Veg)\n\nFreshly baked thin crust with rich tomato sauce and melted mozzarella cheese.";
             }
 
-            // 8. Pastas / Pasta
-            if (q.includes('pasta') || q.includes('spaghetti') || q.includes('mac')) {
+            // 8. Pastas / Pasta Category List
+            if (q.includes('pasta') || q.includes('spaghetti')) {
                 lastContextCategory = 'pasta';
-                return "🍝 **Café Upper Crust Pasta Menu:**\n\n• **Penne Arrabbiata** — ₹275 (🟢 Veg)\n• **Pesto Pasta** — ₹275 (🟢 Veg)\n• **Mac & Cheese** — ₹245 (🟢 Veg)\n• **Chicken Alfredo Pasta** — ₹345 (🔴 Non-Veg)\n• **Spaghetti Bolognese** — ₹325 (🔴 Non-Veg)";
+                return "🍝 **Café Upper Crust Pasta Menu:**\n\n• **Penne Arrabbiata** — ₹275 🟢 Veg\n• **Pesto Pasta** — ₹275 🟢 Veg\n• **Mac & Cheese** — ₹245 🟢 Veg\n• **Chicken Alfredo Pasta** — ₹345 🔴 Non-Veg\n• **Spaghetti Bolognese** — ₹325 🔴 Non-Veg";
             }
 
             // 9. Sizzlers / Sizzler
@@ -899,21 +1043,18 @@
             return "Welcome to Café Upper Crust! 👋\n\nI can help you with:\n• **Dishes & Prices:** Type any food item (e.g., *'Paneer Tikka'*, *'Pizza'*, *'Pasta'*)\n• **Menu Categories:** Type *'Menu'* or *'Price list'*\n• **Dietary Options:** Type *'Veg'* or *'Non-Veg'*\n• **Outlets & Timings:** Type *'Outlets'* or *'Timings'*\n• **Contact & Catering:** Type *'Contact'* or *'Catering'*\n\nWhat would you like to know?";
         }
 
-
         function appendMessage(msg, sender) {
             const div = document.createElement('div');
             div.className = 'chat-message ' + sender;
             div.innerHTML = formatMarkdown(msg);
             chatBody.appendChild(div);
-            chatBody.scrollTop = chatBody.scrollHeight;
         }
 
         function appendTypingIndicator() {
             const div = document.createElement('div');
-            div.className = 'chat-message bot';
+            div.className = 'chat-message bot typing-indicator-msg';
             div.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
             chatBody.appendChild(div);
-            chatBody.scrollTop = chatBody.scrollHeight;
             return div;
         }
 

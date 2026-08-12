@@ -1959,3 +1959,31 @@ textarea.form-control {
         bottom: 80px;
     }
 }
+
+
+.chat-suggestions-bar {
+    padding: 8px 12px;
+    background: #F8F5EE;
+    border-top: 1px solid rgba(197, 160, 89, 0.2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-height: 110px;
+    overflow-y: auto;
+}
+.chat-suggestions-bar .suggestion-chip {
+    background: #FFFDF7;
+    border: 1px solid #C5A059;
+    color: #1C2D37;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.chat-suggestions-bar .suggestion-chip:hover {
+    background: #C5A059;
+    color: #FFFFFF;
+}
