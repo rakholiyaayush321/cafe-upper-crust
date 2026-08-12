@@ -643,6 +643,7 @@
         `;
 
         document.body.appendChild(toggleBtn);
+        updateSuggestionChipsBar(getPageChips());
         document.body.appendChild(chatContainer);
 
         const closeBtn = chatContainer.querySelector('.chat-widget-close');
@@ -755,95 +756,79 @@
             }).join('');
         }
 
-        function getContextualSuggestions(userMessage, botResponse) {
-            const q = (userMessage || '').toLowerCase();
-
-            // 1. PASTA TOPICS
-            if (q.includes('pasta') || q.includes('spaghetti') || q.includes('alfredo') || q.includes('arrabbiata') || q.includes('pesto') || q.includes('mac')) {
-                return [
-                    { text: '🟢 Vegetarian', msg: 'Which pasta is vegetarian?' },
-                    { text: '🔴 Non-Vegetarian', msg: 'Which pasta is non-vegetarian?' },
-                    { text: '💰 Prices', msg: 'What are your pasta prices?' },
-                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
-                    { text: '🍰 Desserts', msg: 'What desserts do you have?' }
-                ];
-            }
-
-            // 2. PIZZA TOPICS
-            if (q.includes('pizza') || q.includes('margherita') || q.includes('pepperoni')) {
-                return [
-                    { text: '🟢 Vegetarian', msg: 'Which pizza is vegetarian?' },
-                    { text: '🔴 Non-Vegetarian', msg: 'Which pizza is non-vegetarian?' },
-                    { text: '💰 Prices', msg: 'What are your pizza prices?' },
-                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
-                    { text: '📍 Outlets', msg: 'Where are your outlets?' }
-                ];
-            }
-
-            // 3. BURGERS / PUFFS / ROLLS
-            if (q.includes('burger') || q.includes('puff') || q.includes('roll') || q.includes('sandwich')) {
-                return [
-                    { text: '🟢 Vegetarian', msg: 'What veg burgers and rolls do you have?' },
-                    { text: '🔴 Non-Vegetarian', msg: 'What non-veg burgers and rolls do you have?' },
-                    { text: '💰 Prices', msg: 'What are the burger and puff prices?' },
-                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' }
-                ];
-            }
-
-            // 4. SIZZLERS
-            if (q.includes('sizzler')) {
-                return [
-                    { text: '🟢 Vegetarian', msg: 'What veg sizzlers do you have?' },
-                    { text: '🔴 Non-Vegetarian', msg: 'What non-veg sizzlers do you have?' },
-                    { text: '💰 Prices', msg: 'What are the sizzler prices?' },
-                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' }
-                ];
-            }
-
-            // 5. DESSERTS / CAKES
-            if (q.includes('dessert') || q.includes('cake') || q.includes('truffle') || q.includes('brownie') || q.includes('tiramisu') || q.includes('jamun')) {
-                return [
-                    { text: '🟢 Vegetarian', msg: 'What veg desserts do you have?' },
-                    { text: '🍰 Desserts', msg: 'What desserts do you have?' },
-                    { text: '🎂 Cakes', msg: 'What cakes do you have?' },
-                    { text: '💰 Prices', msg: 'What are the dessert prices?' },
-                    { text: '🥤 Beverages', msg: 'What beverages do you have?' }
-                ];
-            }
-
-            // 6. OUTLETS / LOCATION / TIMINGS / CONTACT
-            if (q.includes('outlet') || q.includes('location') || q.includes('address') || q.includes('timing') || q.includes('hour') || q.includes('where') || q.includes('contact') || q.includes('phone')) {
-                return [
-                    { text: '📍 Outlets', msg: 'Where are all your outlets in Ahmedabad?' },
-                    { text: '⏰ Timings', msg: 'What are your store timings?' },
-                    { text: '📞 Contact', msg: 'What are your contact details?' },
-                    { text: '🍽️ Menu', msg: 'What is on your full menu?' }
-                ];
-            }
-
-            // DEFAULT / FALLBACK CHIPS
-            return [
-                { text: '🟢 Vegetarian', msg: 'Show popular vegetarian dishes' },
-                { text: '🔴 Non-Vegetarian', msg: 'Show popular non-vegetarian dishes' },
+        // PAGE / SECTION SPECIFIC SUGGESTION CHIPS CONFIGURATION
+        const pageSuggestionChips = {
+            home: [
+                { text: '🍕 Menu', msg: 'What is on your full menu?' },
+                { text: '🍰 Bakery', msg: 'What bakery items do you have?' },
+                { text: '🎉 Catering', msg: 'Tell me about your catering services' },
+                { text: '📍 Outlets', msg: 'Where are your outlets?' },
+                { text: '⏰ Timings', msg: 'What are your store timings?' },
+                { text: '📞 Contact', msg: 'What are your contact details?' }
+            ],
+            menu: [
                 { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
                 { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
-                { text: '🍰 Desserts', msg: 'What cakes and desserts do you have?' },
+                { text: '🍰 Cakes & Desserts', msg: 'What cakes and desserts do you have?' },
+                { text: '🥤 Beverages', msg: 'What beverages do you have?' },
+                { text: '💰 Prices', msg: 'What are your menu prices?' },
                 { text: '📍 Outlets', msg: 'Where are your outlets?' }
-            ];
+            ],
+            bakery: [
+                { text: '🍰 Bakery Menu', msg: 'What bakery items do you have?' },
+                { text: '🥐 Pastries', msg: 'What pastries do you have?' },
+                { text: '🍞 Breads', msg: 'What fresh breads do you have?' },
+                { text: '🎂 Cakes', msg: 'What cakes do you have?' },
+                { text: '💰 Bakery Prices', msg: 'What are your bakery prices?' },
+                { text: '📍 Bakery Outlets', msg: 'Where are your bakery outlets?' },
+                { text: '⏰ Bakery Timings', msg: 'What are your bakery timings?' }
+            ],
+            catering: [
+                { text: '🍽️ Catering Menu', msg: 'What catering menus do you offer?' },
+                { text: '🎉 Catering Packages', msg: 'What catering packages do you have?' },
+                { text: '💰 Catering Pricing', msg: 'What is your catering pricing?' },
+                { text: '👥 Events & Parties', msg: 'Tell me about event and party catering' },
+                { text: '📍 Catering Availability', msg: 'What is your catering capacity and availability?' },
+                { text: '📞 Contact Catering', msg: 'How do I contact catering?' }
+            ],
+            contact: [
+                { text: '📞 Contact Us', msg: 'What are your contact details?' },
+                { text: '📍 Outlets', msg: 'Where are your outlets located?' },
+                { text: '⏰ Opening Hours', msg: 'What are your opening hours?' },
+                { text: '📧 Email', msg: 'What is your email address?' },
+                { text: '🗺️ Location', msg: 'Where is your main office location?' }
+            ],
+            about: [
+                { text: '🏠 About Us', msg: 'Tell me about Café Upper Crust' },
+                { text: '📖 Our Story', msg: 'What is the story of Café Upper Crust?' },
+                { text: '👨‍🍳 Our Team', msg: 'Who founded Café Upper Crust?' },
+                { text: '📍 Outlets', msg: 'Where are your outlets?' },
+                { text: '📞 Contact', msg: 'What are your contact details?' }
+            ],
+            outlets: [
+                { text: '📍 All Outlets', msg: 'Where are your outlets in Ahmedabad?' },
+                { text: '⏰ Store Timings', msg: 'What are your store timings?' },
+                { text: '📞 Contact Us', msg: 'What are your contact details?' },
+                { text: '🍽️ View Menu', msg: 'What is on your menu?' }
+            ]
+        };
+
+        function getCurrentPageKey() {
+            let p = window.location.pathname.split('/').pop().replace('.html', '').toLowerCase();
+            if (!p || p === 'index' || p === 'home' || p === '') p = 'home';
+            return p;
+        }
+
+        function getPageChips() {
+            const pageKey = getCurrentPageKey();
+            return pageSuggestionChips[pageKey] || pageSuggestionChips.home;
         }
 
         function updateSuggestionChipsBar(suggestions) {
             if (!suggestionsBar) return;
 
             if (!suggestions || !suggestions.length) {
-                suggestions = [
-                    { text: '🟢 Vegetarian', msg: 'Show popular vegetarian dishes' },
-                    { text: '🔴 Non-Vegetarian', msg: 'Show popular non-vegetarian dishes' },
-                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
-                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
-                    { text: '🍰 Desserts', msg: 'What cakes and desserts do you have?' },
-                    { text: '📍 Outlets', msg: 'Where are your outlets?' }
-                ];
+                suggestions = getPageChips();
             }
 
             suggestionsBar.innerHTML = suggestions.map(item => {
@@ -851,6 +836,43 @@
                 const msg = typeof item === 'string' ? item : item.msg;
                 return `<button class="suggestion-chip" data-msg="${msg}">${label}</button>`;
             }).join('');
+        }
+
+        function getContextualSuggestions(userMessage, botResponse) {
+            const pageKey = getCurrentPageKey();
+            const q = (userMessage || '').toLowerCase();
+
+            // Strict Page-Aware Rule: If on Bakery, Catering, Contact, About, or Outlets page,
+            // ALWAYS return page-relevant chips! NEVER show Pizza/Pasta chips on Bakery/Catering pages!
+            if (pageKey === 'bakery') return pageSuggestionChips.bakery;
+            if (pageKey === 'catering') return pageSuggestionChips.catering;
+            if (pageKey === 'contact') return pageSuggestionChips.contact;
+            if (pageKey === 'about') return pageSuggestionChips.about;
+            if (pageKey === 'outlets') return pageSuggestionChips.outlets;
+
+            // On Menu or Home page, provide dynamic category sub-chips
+            if (q.includes('pasta') || q.includes('spaghetti') || q.includes('alfredo') || q.includes('arrabbiata') || q.includes('pesto') || q.includes('mac')) {
+                return [
+                    { text: '🟢 Vegetarian Pasta', msg: 'Which pasta is vegetarian?' },
+                    { text: '🔴 Non-Vegetarian Pasta', msg: 'Which pasta is non-vegetarian?' },
+                    { text: '💰 Pasta Prices', msg: 'What are your pasta prices?' },
+                    { text: '🍕 Pizza Menu', msg: 'What pizzas do you have?' },
+                    { text: '🍰 Desserts', msg: 'What desserts do you have?' }
+                ];
+            }
+
+            if (q.includes('pizza') || q.includes('margherita') || q.includes('pepperoni')) {
+                return [
+                    { text: '🟢 Vegetarian Pizza', msg: 'Which pizza is vegetarian?' },
+                    { text: '🔴 Non-Vegetarian Pizza', msg: 'Which pizza is non-vegetarian?' },
+                    { text: '💰 Pizza Prices', msg: 'What are your pizza prices?' },
+                    { text: '🍝 Pasta Menu', msg: 'What pasta do you have?' },
+                    { text: '📍 Outlets', msg: 'Where are your outlets?' }
+                ];
+            }
+
+            // Fall back to current page chips
+            return getPageChips();
         }
 
         function scrollToBottom() {
